@@ -21,10 +21,10 @@ Origins é um framework PHP leve para construção de APIs RESTful. Ele oferece 
 
 ## Estrutura do Framework
 
-O framework consiste em três componentes principais:
-`ApiController` :  Classe base para controladores de API.
-`Router`: Classe que mapeia os endpoints definidos nos controladores.
-`Origins`: Classe principal que inicializa o framework, gerencia dependências e executa a lógica de roteamento.
+### O framework consiste em três componentes principais:
+`ApiController` :  Classe base para controladores de API.<br>
+`Router`: Classe que mapeia os endpoints definidos nos controladores.<br>
+`Origins`: Classe principal que inicializa o framework, gerencia dependências e executa a lógica de roteamento.<br>
 
 ## Exemplo de Definição de Controlador de API
 
