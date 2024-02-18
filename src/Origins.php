@@ -171,6 +171,10 @@
                                 $args = $attribute->getArguments();
                                 $this->addRouteDelete($args[0], $reflect, $method);
                                 break;
+                        case "Daniel\Origins\Put":
+                                $args = $attribute->getArguments();
+                                $this->addRoutePut($args[0], $reflect, $method);
+                                break;
                         
                     }
                 }
@@ -189,6 +193,11 @@
 
         private function addRouteDelete(string $Path, ReflectionClass $class, ReflectionMethod $method){
             $route = new Router($Path, HttpMethod::DELETE, $class, $method);
+            self::$routes[] = $route;
+        }
+
+        private function addRoutePut(string $Path, ReflectionClass $class, ReflectionMethod $method){
+            $route = new Router($Path, HttpMethod::PUT, $class, $method);
             self::$routes[] = $route;
         }
 

@@ -23,4 +23,11 @@
 
         }
     }
+
+    #[Attribute]
+    class Put {
+        public function __construct(public string $value) {
+
+        }
+    }
 ?>
