@@ -1,0 +1,16 @@
+{
+    "name": "daniel/origins",
+    "description": "Framework para desenvolvimento Web",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Daniel\\Origins\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Daniel Teixeira Melo"
+        }
+    ],
+    "require": {}
+}
