@@ -1,6 +1,6 @@
 <?php
 
-namespace Daniel\Origins;
+namespace DanielTm\Origins;
 
 use Daniel\Origins\JsonSerializable;
 use ReflectionClass;

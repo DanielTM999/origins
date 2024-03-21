@@ -1,5 +1,5 @@
 <?php
-    namespace Daniel\Origins;
+    namespace DanielTm\Origins;
     interface MiddlewareFilter{
         public function invokeHandle(): void;
     }

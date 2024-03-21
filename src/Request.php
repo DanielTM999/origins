@@ -1,5 +1,5 @@
 <?php
-    namespace Daniel\Origins;
+    namespace DanielTm\Origins;
     class Request{
         private $pathVar;
         private $headers;

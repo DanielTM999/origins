@@ -1,5 +1,5 @@
 <?php
-    namespace Daniel\Origins;
+    namespace DanielTm\Origins;
 
     use ReflectionClass;
     use ReflectionMethod;

@@ -4,7 +4,7 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Daniel\\Origins\\": "src/"
+            "DanielTm\\Origins\\": "src/"
         }
     },
     "authors": [
