@@ -16,6 +16,15 @@
             return $this->headers;
         }
 
+        public function getHeader(string $headerName){
+            if (isset($this->headers[$headerName])) {
+                $result = $this->headers[$headerName];
+            } else {
+                $result = null;
+            }
+            return $result;
+        }
+
         public function getBody(){
             return $this->body;
         }

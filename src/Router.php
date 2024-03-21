@@ -2,7 +2,7 @@
     namespace Daniel\Origins;
 
     use ReflectionClass;
-use ReflectionMethod;
+    use ReflectionMethod;
 
     class Router{
         public string $method;

@@ -7,15 +7,20 @@ Origins é um framework PHP leve para construção de APIs RESTful. Ele oferece 
 
 ```php
 <?php
-    require './vendor/autoload.php';
+    require "./vendor/autoload.php";
+    include "./RotaController.php";
     include "./Teste.php";
-
     use Daniel\Origins\Origins;
 
-    $app = Origins::initialize();
-    $app->AddDependency(TesteService::class);
-    $app->EnableEndPoint();
-    $app->Run();
+    try{
+        $app = Origins::initialize();
+        $app->AddSingleton(PessoaRepository::class);
+        $app->AddMiddleware(new Filter());
+        $app->EnableEndPoint();
+        $app->Run();
+    }catch(Exception $ex){
+        echo $ex->getMessage(); 
+    }
 ?>
 ```
 
@@ -69,7 +74,7 @@ Origins é um framework PHP leve para construção de APIs RESTful. Ele oferece 
 ``` 
 
 
-## Exemplo de Definição de Controlador de API
+## Exemplo de Definição de seviço de API
 
 ```php
 <?php
@@ -78,6 +83,18 @@ Origins é um framework PHP leve para construção de APIs RESTful. Ele oferece 
         // Implementação do serviço
     }
 
+?>
+```
+
+## Exemplo de Definição de Middleware
+```php
+<?php
+    // implemente a interface de dependecia MiddlewareFilter e chame a instancia $app->AddMiddleware(new Filter());
+    class Filter implements MiddlewareFilter{
+        public function invokeHandle(): void{
+            echo "middleware executado<br>";
+        }
+    }
 ?>
 ```
 
