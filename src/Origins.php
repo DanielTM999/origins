@@ -4,12 +4,12 @@ namespace DanielTm\Origins;
 
 use Daniel\Origins\JsonSerializable;
 use ReflectionClass;
-use Daniel\Origins\Router;
-use Daniel\Origins\HttpMethod;
-use Daniel\Origins\MiddlewareFilter as OriginsMiddlewareFilter;
+use DanielTm\Origins\Router;
+use DanielTm\Origins\HttpMethod;
+use DanielTm\Origins\MiddlewareFilter as OriginsMiddlewareFilter;
 use Exception;
 use ReflectionMethod;
-use Daniel\Origins\Request;
+use DanielTm\Origins\Request;
 use MiddlewareFilter;
 use ReflectionProperty;
 
@@ -146,7 +146,7 @@ class Origins
         foreach ($classes as $class) {
             $reflect = new ReflectionClass($class);
             $parent = $reflect->getParentClass();
-            if (is_object($parent) && ($parent->getName() === "Daniel\Origins\ApiController")) {
+            if (is_object($parent) && ($parent->getName() === ApiController::class)) {
                 $this->mappingControllerClass(new ReflectionClass($class));
             }
         }
@@ -254,19 +254,19 @@ class Origins
             foreach ($attributes as $attribute) {
                 $atrubute_name = $attribute->getName();
                 switch ($atrubute_name) {
-                    case "Daniel\Origins\Get":
+                    case Get::class:
                         $args = $attribute->getArguments();
                         $this->addRouteGet($args[0], $reflect, $method);
                         break;
-                    case "Daniel\Origins\Post":
+                    case Post::class:
                         $args = $attribute->getArguments();
                         $this->addRoutePost($args[0], $reflect, $method);
                         break;
-                    case "Daniel\Origins\Delete":
+                    case Delete::class:
                         $args = $attribute->getArguments();
                         $this->addRouteDelete($args[0], $reflect, $method);
                         break;
-                    case "Daniel\Origins\Put":
+                    case Put::class:
                         $args = $attribute->getArguments();
                         $this->addRoutePut($args[0], $reflect, $method);
                         break;
