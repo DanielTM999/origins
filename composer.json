@@ -1,5 +1,5 @@
 {
-    "name": "daniel/origins",
+    "name": "danieltm/origins",
     "description": "Framework para desenvolvimento Web",
     "type": "library",
     "autoload": {
