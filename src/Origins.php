@@ -2,10 +2,11 @@
 
 namespace DanielTm\Origins;
 
-use Daniel\Origins\JsonSerializable;
+
 use ReflectionClass;
 use DanielTm\Origins\Router;
 use DanielTm\Origins\HttpMethod;
+use DanielTm\Origins\ApiController;
 use DanielTm\Origins\MiddlewareFilter as OriginsMiddlewareFilter;
 use Exception;
 use ReflectionMethod;
@@ -19,6 +20,7 @@ class Origins
     private static $di_dinamic = [];
     public static $pathClass = [];
     private static $filterMiddlweare = [];
+    private static $dependency_contruct = [];
     private $routes = [];
 
     public static function initialize(): Origins
@@ -40,6 +42,7 @@ class Origins
 
     public function AddDependency(string $dependecy)
     {
+        //self::$dependency_contruct[] = new Dependency($dependecy, "d");
         $reflect = new ReflectionClass($dependecy);
 
         $contructFunction = function () use ($reflect) {
@@ -53,9 +56,13 @@ class Origins
                     if ($paramClass !== null && !$paramClass->isBuiltin()) {
                         $paramClassName = $paramClass->getName();
                         $object = $this->DiConteins($paramClassName);
-                        $resolvedArgs[] = $object();
+                        if (is_callable($object)) {
+                            $resolvedArgs[] = $object();
+                        } else if (is_object($object)) {
+                            $resolvedArgs[] = $object;
+                        }
                     } else {
-                        echo "Tipo primitivo ou não definidoc para conreutor de classe <br>";
+                        echo "Tipo primitivo ou não definido para corretor de classe <br>";
                     }
                 }
                 return $reflect->newInstanceArgs($resolvedArgs);
@@ -73,6 +80,7 @@ class Origins
 
     public function AddDependencyCustom($dependency = null)
     {
+        //self::$dependency_contruct[] = new Dependency($dependency, "d");
         $object = null;
         if (!is_callable($dependency)) {
             throw new Exception("passe uma função de inicialização");
@@ -104,6 +112,7 @@ class Origins
 
     public function AddSingleton(string $dependecy)
     {
+        //self::$dependency_contruct[] = new Dependency($dependecy, "s");
         $reflect = new ReflectionClass($dependecy);
         $contructFunction = function () use ($reflect) {
             $constructor = $reflect->getConstructor();
@@ -116,9 +125,13 @@ class Origins
                     if ($paramClass !== null && !$paramClass->isBuiltin()) {
                         $paramClassName = $paramClass->getName();
                         $object = $this->DiConteins($paramClassName);
-                        $resolvedArgs[] = $object();
+                        if (is_callable($object)) {
+                            $resolvedArgs[] = $object();
+                        } else if (is_object($object)) {
+                            $resolvedArgs[] = $object;
+                        }
                     } else {
-                        echo "Tipo primitivo ou não definidoc para conreutor de classe <br>";
+                        echo "Tipo primitivo ou não definido para corretor de classe <br>";
                     }
                 }
                 return $reflect->newInstanceArgs($resolvedArgs);
@@ -134,11 +147,6 @@ class Origins
         self::$di_dinamic[] = $data;
     }
 
-    public function Configuration(string $configureClass){
-        $reflect = new ReflectionClass($configureClass);
-        $interfaces = $reflect->getInterfaceNames();
-    }
-
     public function EnableEndPoint()
     {
         $classes = get_declared_classes();
@@ -149,6 +157,14 @@ class Origins
             if (is_object($parent) && ($parent->getName() === ApiController::class)) {
                 $this->mappingControllerClass(new ReflectionClass($class));
             }
+        }
+    }
+
+    public function EnableConfig(){
+        $this->apllyDependency();
+        foreach(self::$pathClass as $class){
+            $reflect = new ReflectionClass($class);
+            $this->conteinsInterface($reflect, Configuration::class);
         }
     }
 
@@ -244,6 +260,13 @@ class Origins
             throw new Exception("Falha na injeçãa de dependecia [ {$class} ] não Registrado no Conteiner de injeção");
         }
         return $data;
+    }
+
+    private function apllyDependency(){
+        // foreach(self::$dependency_contruct as $dependency){
+        //     $isInjected = $this->DiConteins($dependency->$dependency);
+        //     var_dump($isInjected);
+        // }
     }
 
     private function mappingControllerClass(ReflectionClass $reflect)
@@ -410,13 +433,6 @@ class Origins
         }
     }
 
-    public function executeConfig(){
-        foreach(self::$pathClass as $class){
-            $reflect = new ReflectionClass($class);
-            $this->conteinsInterface($reflect, Configuration::class);
-        }
-    }
-
     private function conteinsInterface(ReflectionClass $class, string $interfaceExpected): bool{
         $interfaces = $class->getInterfaceNames();
         foreach($interfaces as $interface){
@@ -494,4 +510,16 @@ class Origins
 
         return $html;
     }
+}
+
+class Dependency{
+    public $dependency;
+    public $type;
+
+    public function __construct($dependency, $type)
+    {
+        $this->dependency = $dependency;
+        $this->type = $type;
+    }
+    
 }
