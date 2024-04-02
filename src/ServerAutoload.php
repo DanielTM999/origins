@@ -18,12 +18,21 @@
                 if ($item === '.' || $item === '..') {
                     continue;
                 }
-                $path = $directory . DIRECTORY_SEPARATOR . $item;
-                if (is_dir($path)) {
-                    $this->autoloadFromDirectory($path);
-                } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
-                    $this->requireOnce($path);
+                $execute = true;
+                if (strpos($directory, "vendor") !== false || strpos($directory, "git") !== false) {
+                    $execute = false;
                 }
+
+                if($execute){
+                    echo "$directory <br>";
+                    $path = $directory . DIRECTORY_SEPARATOR . $item;
+                    if (is_dir($path)) {
+                        $this->autoloadFromDirectory($path);
+                    } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                        $this->requireOnce($path);
+                    }
+                }
+
             }
         }
 
