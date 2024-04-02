@@ -19,7 +19,7 @@
                     continue;
                 }
                 $execute = true;
-                if (strpos($directory, "vendor") !== false || strpos($directory, "git") !== false) {
+                if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false) {
                     $execute = false;
                 }
 
