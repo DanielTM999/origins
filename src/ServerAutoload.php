@@ -24,7 +24,6 @@
                 }
 
                 if($execute){
-                    echo "$directory <br>";
                     $path = $directory . DIRECTORY_SEPARATOR . $item;
                     if (is_dir($path)) {
                         $this->autoloadFromDirectory($path);
