@@ -1,0 +1,16 @@
+{
+    "name": "danieltm/origins",
+    "autoload": {
+        "psr-4": {
+            "Daniel\\Origins\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Daniel Teixeira Melo"
+        }
+    ],
+    "require": {
+        "php": "^8.0"
+    }
+}
