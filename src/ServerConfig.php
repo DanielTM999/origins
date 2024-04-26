@@ -2,7 +2,7 @@
 
     namespace Daniel\Origins;
     use Override;
-use ReflectionClass;
+    use ReflectionClass;
 
     class ServerConfig extends Config{
         private DependencyManager $di;

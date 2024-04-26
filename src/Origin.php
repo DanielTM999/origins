@@ -8,6 +8,7 @@
         private Autoloader $autoload;
         private DependencyManager $Dmanager;
         private Config $serverConfg;
+        private VarEnv $varEnvLoader;
 
         public function __construct()
         {
@@ -15,11 +16,14 @@
             $this->autoload = $this->getAutoload();
             $this->Dmanager = $this->getDependecyManager();
             $this->serverConfg = $this->getConfigOnInit();
+            $this->varEnvLoader = $this->getVarEnv();
 
+            $this->varEnvLoader->load();
             $this->autoload->load();
             $this->dispacher->map();
             $this->Dmanager->start();
             $this->serverConfg->ConfigOnInit();
+
         }
 
         public function showMappedendPoints(){
@@ -32,6 +36,10 @@
 
         private function getConfigOnInit() : Config{
             return new ServerConfig($this->Dmanager);
+        }
+
+        private function getVarEnv() : VarEnv{
+            return new ServerVarEnv();
         }
 
         private function getDispacher(): Dispacher{
