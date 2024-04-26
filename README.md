@@ -76,6 +76,7 @@ class UserController extends Controller
         $body = $req->getBody();
     }   
 
+    #[Get("/number")]
     public function getNumber(){
         echo $this->servico->getNumber();
     }
