@@ -1,7 +1,7 @@
 <?php
     namespace Daniel\Origins;
     use ReflectionClass;
-use ReflectionProperty;
+    use ReflectionProperty;
 
     class DependencyManager{
         private static $dependency_creator = [];
@@ -18,10 +18,37 @@ use ReflectionProperty;
                 $reflect = new ReflectionClass($c);
                 $atrbute = $reflect->getAttributes(Dependency::class);
                 if(!empty($atrbute)){
-                    self::$dependency_creator[] = $reflect;
+                    if(!$reflect->isInterface()){
+                        self::$dependency_creator[] = $reflect;
+                    }
+                }
+
+                $parentClass = $reflect->getParentClass();
+                if ($parentClass !== false) {
+                    $parentClassName = $parentClass->getName();
+                    if($parentClassName === OnInit::class){
+                        self::$dependency_creator[] = $reflect;
+                    }
                 }
             }
             $this->create();
+        }
+
+        public function addDependency(string $dependency, object $object){
+            $notDepend = true;
+            foreach(self::$dependencys as $d){
+                if(isset($d[$dependency])){
+                   $d[$dependency] = $object;
+                   $notDepend = false;
+                }
+            }
+
+            if($notDepend){
+                self::$dependencys[] = [
+                    $dependency => $object
+                ];
+            }
+            
         }
 
         public function get(string $dependency){
@@ -42,14 +69,32 @@ use ReflectionProperty;
             foreach(self::$dependencys as $d){
                 var_dump($d);
                 echo "<br>";
+                echo "<br>";
             }
         }
 
         private function create(){
             foreach(self::$dependency_creator as $d){
                 $name = $d->getName();
+                $instance = $this->getInstanceOrActivator($d);
+                $interfaces = $d->getInterfaces();
+                foreach ($interfaces as $interface) {
+                    $interfaceName = $interface->getName();
+                    self::$dependencys[] = [
+                        $interfaceName => $instance
+                    ];
+                }
+
+                $parentClass = $d->getParentClass();
+                if ($parentClass !== false) {
+                    $parentClassName = $parentClass->getName();
+                    self::$dependencys[] = [
+                        $parentClassName => $instance
+                    ];
+                }
+
                 self::$dependencys[] = [
-                    $name => $this->getInstanceOrActivator($d)
+                    $name => $instance
                 ];   
             }
         } 
@@ -102,6 +147,7 @@ use ReflectionProperty;
 
         private function getDependency(ReflectionProperty $var){
             $name = $var->getName();
+
             if(isset(self::$dependencys[$name])){
                 if(is_callable(self::$dependencys[$name])){
                     return self::$dependencys[$name]();
@@ -125,7 +171,10 @@ use ReflectionProperty;
                 if(isset($dependencyname)){
                     $reflect = new ReflectionClass($dependencyname);
                     $object = $this->getInstanceOrActivator($reflect);
-                    if(is_callable($object)){
+                    
+                    if($dependencyname === DependencyManager::class){
+                        return $this;
+                    }else if(is_callable($object)){
                         return $object();
                     }else if(is_object($object)){
                         return $object;
