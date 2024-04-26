@@ -15,7 +15,7 @@
     #[Attribute]
     class Inject{
         public function __construct(string $class = null) {
-
-        }
+            
+        }   
     }
 ?>
