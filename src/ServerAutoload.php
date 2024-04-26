@@ -15,21 +15,25 @@
             $items = scandir($directory);
 
             foreach ($items as $item) {
-                if ($item === '.' || $item === '..') {
-                    continue;
-                }
-                $execute = true;
-                if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false) {
-                    $execute = false;
-                }
-
-                if($execute){
-                    $path = $directory . DIRECTORY_SEPARATOR . $item;
-                    if (is_dir($path)) {
-                        $this->autoloadFromDirectory($path);
-                    } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
-                        $this->requireOnce($path);
+               try {
+                    if ($item === '.' || $item === '..') {
+                        continue;
                     }
+                    $execute = true;
+                    if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false) {
+                        $execute = false;
+                    }
+
+                    if($execute){
+                        $path = $directory . DIRECTORY_SEPARATOR . $item;
+                        if (is_dir($path)) {
+                            $this->autoloadFromDirectory($path);
+                        } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                            $this->requireOnce($path);
+                        }
+                    }
+                } catch (\Throwable $th) {
+
                 }
 
             }
