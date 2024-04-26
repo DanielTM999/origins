@@ -15,7 +15,7 @@
             $items = scandir($directory);
 
             foreach ($items as $item) {
-               try {
+                try {
                     if ($item === '.' || $item === '..') {
                         continue;
                     }
