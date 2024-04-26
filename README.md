@@ -22,6 +22,10 @@ Para começar a usar o framework Origins, siga estas etapas simples:
 
 3. Configure seu servidor web para direcionar as solicitações para o diretório `public` do framework.
 
+## Principais Requisitos
+
+PHP 8.3
+
 ## Conceitos Principais
 
 O framework Origins é construído com base em alguns conceitos fundamentais:
