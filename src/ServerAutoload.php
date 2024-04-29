@@ -32,7 +32,7 @@
                         $path = $directory . DIRECTORY_SEPARATOR . $item;
                         if (is_dir($path)) {
                             $this->autoloadFromDirectory($path);
-                        } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                        } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php' && !($this->containsClassView($path))) {
                             $this->requireOnce($path);
                         }
                     }
@@ -49,6 +49,16 @@
             if (!in_array($file, $this->loadedFiles)) {
                 require_once $file;
                 $this->loadedFiles[] = $file;
+            }
+        }
+
+        private function containsClassView($directory) {
+            return strpos($directory, "views") !== false || strpos($directory, "view") !== false;
+        }
+
+        private function Foreach(array $list, callable $f){
+            foreach($list as $d){
+                $f($d);
             }
         }
     } 
