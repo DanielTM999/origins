@@ -36,4 +36,11 @@
 
     }
 
+    class Response{
+
+        public function renderPage(string $page){
+            include_once $page;
+        }
+    }
+
 ?>

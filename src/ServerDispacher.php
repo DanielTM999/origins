@@ -277,6 +277,9 @@ use ReflectionProperty;
                             case Request::class:
                                 $args[] = $req;
                                 break;
+                            case Response::class:
+                                $args[] = new Response();
+                                break;
                             default:
                                 $args[] = null;
                                 break;

@@ -8,6 +8,10 @@
         #[Override]
         public function load(): void{
             $dirBase = pathinfo(__DIR__, 1);
+            $vendorPos = strpos($dirBase, '\vendor');
+            if ($vendorPos !== false) {
+                $dirBase = substr($dirBase, 0, $vendorPos);
+            }
             $this->autoloadFromDirectory($dirBase);
         }
 

@@ -9,7 +9,13 @@
 
         public function __construct()
         {
-            self::$PROJECT_ENV = dirname(__DIR__, 1);
+            $projectEnv = dirname(__DIR__);
+            $vendorPos = strpos($projectEnv, '\vendor');
+            if ($vendorPos !== false) {
+                $projectEnv = substr($projectEnv, 0, $vendorPos);
+            }
+            self::$PROJECT_ENV = $projectEnv;
+
         }
 
         #[Override]
