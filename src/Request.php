@@ -38,8 +38,13 @@
 
     class Response{
 
-        public function renderPage(string $page){
+        public function renderPage(string $page): void{
             include_once $page;
+        }
+
+        public function redirect(string $to): void{
+            header("Location: $to");
+            exit;
         }
     }
 
