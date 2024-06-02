@@ -44,8 +44,7 @@
         }
 
         private function requireOnce($file)
-        {
-            
+        {      
             if (!in_array($file, $this->loadedFiles)) {
                 require_once $file;
                 $this->loadedFiles[] = $file;
@@ -54,12 +53,6 @@
 
         private function containsClassView($directory) {
             return strpos($directory, "views") !== false || strpos($directory, "view") !== false;
-        }
-
-        private function Foreach(array $list, callable $f){
-            foreach($list as $d){
-                $f($d);
-            }
         }
     } 
 

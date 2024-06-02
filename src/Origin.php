@@ -1,6 +1,9 @@
 <?php
     namespace Daniel\Origins;
 
+    if(session_status() != PHP_SESSION_ACTIVE){
+        session_start();
+    }
 
     class Origin{
         private static Origin $instance;

@@ -21,6 +21,7 @@ use ReflectionProperty;
                     $this->mappingControllerClass(new ReflectionClass($class));
                 }
             }
+
         }
 
         #[Override]
