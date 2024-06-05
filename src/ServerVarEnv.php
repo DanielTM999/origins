@@ -9,11 +9,16 @@
 
         public function __construct()
         {
-            $projectEnv = dirname(__DIR__);
-            $vendorPos = strpos($projectEnv, '\vendor');
-            if ($vendorPos !== false) {
-                $projectEnv = substr($projectEnv, 0, $vendorPos);
+            $projectEnv = __DIR__;
+
+            $dirLibrary = __DIR__;
+
+            while (strpos($dirLibrary, 'vendor') !== false) {
+                $dirLibrary = dirname($dirLibrary);
             }
+            
+            $projectEnv = $dirLibrary;
+
             self::$PROJECT_ENV = $projectEnv;
 
         }
