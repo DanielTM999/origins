@@ -113,3 +113,24 @@ Aqui está um exemplo de como criar o index:
 
 ?>
 ```
+
+## Personalizando a Configuração (Opcional)
+
+Se você precisar personalizar a configuração do framework, pode extender a classe:
+
+- **`OnInit.php`**: Este arquivo contem uma classe abstrata que define um método para configurar o framework durante a inicialização.
+
+```php
+<?php
+
+   class MinhaConfig extends OnInit{
+        //possivel injetar dependecia na inicalização porem apenas classes configuradas para inicar no mesmo momento
+    
+        #[Override]
+        public function ConfigOnInit() : void{
+            //sua consfig
+        }
+    }
+
+?>
+```
