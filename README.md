@@ -24,7 +24,7 @@ Para começar a usar o framework Origins, siga estas etapas simples:
 
 ## Principais Requisitos
 
-PHP 8.3
+PHP 8.0
 
 ## Conceitos Principais
 
