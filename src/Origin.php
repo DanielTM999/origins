@@ -66,3 +66,7 @@
         }
     }
 
+    abstract class Autoloader{
+        public abstract function load(): void;
+    }
+?>

@@ -7,7 +7,13 @@
 
         #[Override]
         public function load(): void{
-            $dirBase = pathinfo(__DIR__, 1);
+            $dirLibrary = __DIR__;
+
+            while (strpos($dirLibrary, 'vendor') !== false) {
+                $dirLibrary = dirname($dirLibrary);
+            }
+
+            $dirBase = $dirLibrary;
             $vendorPos = strpos($dirBase, '\vendor');
             if ($vendorPos !== false) {
                 $dirBase = substr($dirBase, 0, $vendorPos);
@@ -20,11 +26,11 @@
 
             foreach ($items as $item) {
                 try {
-                    if ($item === '.' || $item === '..') {
-                        continue;
-                    }
                     $execute = true;
-                    if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false) {
+                    if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false || strpos($directory, "danieltm/origins") !== false) {
+                        $execute = false;
+                    }
+                    if ($item === '.' || $item === '..') {
                         $execute = false;
                     }
 
@@ -45,9 +51,13 @@
 
         private function requireOnce($file)
         {      
-            if (!in_array($file, $this->loadedFiles)) {
-                require_once $file;
-                $this->loadedFiles[] = $file;
+            try{
+                if (!in_array($file, $this->loadedFiles)) {
+                    require_once $file;
+                    $this->loadedFiles[] = $file;
+                }
+            } catch (\Throwable $th) {
+                echo $th->getMessage();
             }
         }
 
