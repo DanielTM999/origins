@@ -9,6 +9,7 @@ use ReflectionProperty;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
+        private static $middlewares = [];
 
         #[Override]
         public function map(): void{
@@ -19,6 +20,14 @@ use ReflectionProperty;
 
                 if (isset($atribute) && !empty($atribute)){
                     $this->mappingControllerClass(new ReflectionClass($class));
+                }
+
+                $parentClass = $reflect->getParentClass();
+                if ($parentClass !== false) {
+                    $parentClassName = $parentClass->getName();
+                    if($parentClassName === Middleware::class){
+                        self::$middlewares[] = $reflect;
+                    }
                 }
             }
 
@@ -51,7 +60,16 @@ use ReflectionProperty;
 
                     $instance = $this->getInstanceBy($route->class, $Dmanager);
                     $method = $route->methodClass;
-                    $this->ExecuteMethod($method, $instance, $req);
+
+                    try {
+                        foreach(self::$middlewares as $md){
+                            $instanceMiddleware = $this->getInstanceBy($md, $Dmanager);
+                            $this->ExecuteMiddleware($instanceMiddleware, $req);
+                        }
+                        $this->ExecuteMethod($method, $instance, $req);
+                    } catch (\Throwable $th) {
+                        
+                    }
                     return;
                 }
             }
@@ -291,7 +309,8 @@ use ReflectionProperty;
                     } catch (\Throwable $th) {
                         $reflect = new ReflectionClass($entity);
                         $name = $reflect->getName();
-                        echo "<b>Error:</b> possivel falta da Anotação #[Inject] em alguma dependencia da classe $name";
+                        $error = $th->getMessage();
+                        echo "<b>Error:</b> [$name] --> $error";
                     }
                 } else {
                     $method->invoke($entity);
@@ -299,6 +318,10 @@ use ReflectionProperty;
             } catch (Exception $e) {
                 var_dump($e->getMessage());
             }
+        }
+
+        private function ExecuteMiddleware(Middleware $entity, Request $req){
+            $entity->onPerrequest($req);
         }
     }
 

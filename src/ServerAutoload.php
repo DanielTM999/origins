@@ -27,6 +27,13 @@
             foreach ($items as $item) {
                 try {
                     $execute = true;
+                    $ignore = $_ENV["load.ignore"];
+                    $ignoreList = explode("/", $ignore);
+                    foreach($ignoreList as $v){
+                        if(strpos($directory, $v) !== false){
+                            $execute = false;
+                        }
+                    }
                     if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false || strpos($directory, "danieltm/origins") !== false) {
                         $execute = false;
                     }
