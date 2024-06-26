@@ -1,15 +1,17 @@
 <?php
     namespace Daniel\Origins;
 
-use Exception;
-use Override;
+    use Exception;
+    use Override;
     use ReflectionClass;
     use ReflectionMethod;
-use ReflectionProperty;
+    use ReflectionProperty;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
         private static $middlewares = [];
+        private static ReflectionClass $controllerErrorReflect;
+        private static ControllerAdvice $controllerError;
 
         #[Override]
         public function map(): void{
@@ -27,6 +29,8 @@ use ReflectionProperty;
                     $parentClassName = $parentClass->getName();
                     if($parentClassName === Middleware::class){
                         self::$middlewares[] = $reflect;
+                    }else if($parentClassName === ControllerAdvice::class){
+                        self::$controllerErrorReflect = $reflect;
                     }
                 }
             }
@@ -68,7 +72,16 @@ use ReflectionProperty;
                         }
                         $this->ExecuteMethod($method, $instance, $req);
                     } catch (\Throwable $th) {
-                        
+                        try {
+                            if(isset(self::$controllerErrorReflect)){
+                                self::$controllerError = $this->getInstanceBy(self::$controllerErrorReflect, $Dmanager);
+                                self::$controllerError->onError($th);
+                            }else{
+                                throw $th;  
+                            }
+                        } catch (\Throwable $th1) {
+                            throw $th1;
+                        }
                     }
                     return;
                 }
