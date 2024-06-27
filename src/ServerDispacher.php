@@ -34,7 +34,6 @@
                     }
                 }
             }
-            self::$middlewares = array_reverse(self::$middlewares);
         }
 
         #[Override]

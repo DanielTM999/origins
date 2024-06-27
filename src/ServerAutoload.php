@@ -19,6 +19,10 @@
                 $dirBase = substr($dirBase, 0, $vendorPos);
             }
             $this->autoloadFromDirectory($dirBase);
+            $this->loadedFiles = array_reverse($this->loadedFiles);
+            foreach($this->loadedFiles as $file){
+                require_once $file;
+            }
         }
 
         private function autoloadFromDirectory($directory){
@@ -63,7 +67,6 @@
         {      
             try{
                 if (!in_array($file, $this->loadedFiles)) {
-                    require_once $file;
                     $this->loadedFiles[] = $file;
                 }
             } catch (\Throwable $th) {
