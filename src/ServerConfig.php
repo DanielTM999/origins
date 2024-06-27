@@ -34,6 +34,7 @@
 
 
         private function configure(){
+            self::$config = array_reverse(self::$config);
             foreach(self::$config as $d){
                 $obj = $this->getInstanceBy($d, $this->di);
                 $obj->ConfigOnInit();
