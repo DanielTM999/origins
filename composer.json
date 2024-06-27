@@ -13,5 +13,8 @@
     "require": {
         "php": "^8.0"
     },
-    "license": "MIT"
+    "license": "MIT",
+    "scripts": {
+        "run-script": "php src/template.php"
+    }
 }
