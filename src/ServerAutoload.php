@@ -31,12 +31,13 @@
                         $ignore = $_ENV["load.ignore"];
                         $ignoreList = explode("/", $ignore);
                         foreach($ignoreList as $v){
+                            $v = str_replace('@', '\\', $v);
                             if(strpos($directory, $v) !== false){
                                 $execute = false;
                             }
                         }
                     }
-                    if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false || strpos($directory, "danieltm/origins") !== false) {
+                    if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false || strpos($directory, "danieltm/origins" ) !== false || strpos($directory, "http-security/vendor" ) !== false) {
                         $execute = false;
                     }
                     if ($item === '.' || $item === '..') {
