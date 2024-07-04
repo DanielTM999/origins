@@ -162,7 +162,7 @@
                     $propClass = $var->getType();
                     $args = $this->getAnnotetion($var, Inject::class);
                     if (isset($propClass)) {
-                        $dependencyname = $propClass;
+                        $dependencyname = $propClass->getName();
                     }else if(!empty($args)){
                         $dependencyname = $args[0];
                     }
