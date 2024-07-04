@@ -18,6 +18,7 @@
             if ($vendorPos !== false) {
                 $dirBase = substr($dirBase, 0, $vendorPos);
             }
+            $_ENV["base.dir"] = $dirBase;
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
             foreach($this->loadedFiles as $file){
