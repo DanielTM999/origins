@@ -6,4 +6,7 @@
 
     #[Attribute(Attribute::TARGET_CLASS|Attribute::TARGET_CLASS_CONSTANT)]
     class Controller{}
+
+    #[Attribute(Attribute::TARGET_CLASS|Attribute::TARGET_CLASS_CONSTANT)]
+    class ControllerAdvice{}
 ?>
