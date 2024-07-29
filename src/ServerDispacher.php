@@ -75,16 +75,7 @@
                         }
                         $this->ExecuteMethod($method, $instance, $req);
                     } catch (\Throwable $th) {
-                        try {
-                            if(isset(self::$controllerErrorReflect)){
-                                self::$controllerError = $this->getInstanceBy(self::$controllerErrorReflect, $Dmanager);
-                                self::$controllerError->onError($th);
-                            }else{
-                                throw $th;  
-                            }
-                        } catch (\Throwable $th1) {
-                            throw $th1;
-                        }
+                        $this->executeControllerAdviceException($th);
                     }
                     return;
                 }
@@ -345,6 +336,10 @@
             if(isset($atribute) && !empty($atribute)){
                 $_SESSION["controllerAdvice"][] = $reflection;
             }
+        }
+
+        private function executeControllerAdviceException(){
+
         }
     }
 
