@@ -33,6 +33,10 @@
                         self::$controllerErrorReflect = $reflect;
                     }
                 }
+
+                if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
+                    $this->addToControllerAdvice($reflect);
+                }
             }
         }
 
@@ -335,7 +339,15 @@
         private function ExecuteMiddleware(Middleware $entity, Request $req){
             $entity->onPerrequest($req);
         }
+
+        private function addToControllerAdvice(ReflectionClass $reflection){
+            $atribute = $reflection->getAttributes(ControllerAdvice::class);
+            if(isset($atribute) && !empty($atribute)){
+                $_SESSION["controllerAdvice"][] = $reflection;
+            }
+        }
     }
+
 
     
 ?>
