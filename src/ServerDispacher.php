@@ -6,6 +6,7 @@
     use ReflectionClass;
     use ReflectionMethod;
     use ReflectionProperty;
+use Throwable;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
@@ -75,7 +76,7 @@
                         }
                         $this->ExecuteMethod($method, $instance, $req);
                     } catch (\Throwable $th) {
-                        $this->executeControllerAdviceException($th);
+                        $this->executeControllerAdviceException($th, $Dmanager);
                     }
                     return;
                 }
@@ -338,8 +339,13 @@
             }
         }
 
-        private function executeControllerAdviceException(){
-
+        private function executeControllerAdviceException(Throwable $throwable, DependencyManager $Dmanager){
+            if(isset(self::$controllerErrorReflect)){
+                self::$controllerError = $this->getInstanceBy(self::$controllerErrorReflect, $Dmanager);
+                self::$controllerError->onError($throwable);
+            }else{
+                throw $throwable;  
+            }
         }
     }
 
