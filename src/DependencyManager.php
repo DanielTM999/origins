@@ -103,6 +103,7 @@
             $vars = $reflect->getProperties();
             $constructor = $reflect->getConstructor();
 
+            
             if ($constructor !== null){
 
             }else{
@@ -146,7 +147,8 @@
         }
 
         private function getDependency(ReflectionProperty $var){
-            $name = $var->getName();
+            $name = $var->getType();
+            $name = $name->getName();
 
             if(isset(self::$dependencys[$name])){
                 if(is_callable(self::$dependencys[$name])){
@@ -169,7 +171,17 @@
                 }
 
                 if(isset($dependencyname)){
-                    $reflect = new ReflectionClass($dependencyname);
+                    $reflectBase = new ReflectionClass($dependencyname);
+                    $reflect = $reflectBase;
+                    if($reflectBase->isInterface()){
+                        foreach(self::$dependency_creator as $service){
+                            if ($service->implementsInterface($reflectBase->getName())) {
+                                $reflect = $service;
+                                break;
+                            }
+                        }
+                    }
+
                     $object = $this->getInstanceOrActivator($reflect);
                     
                     if($dependencyname === DependencyManager::class){
