@@ -34,9 +34,9 @@
                     $execute = true;
                     if(isset($_ENV["load.ignore"])){
                         $ignore = $_ENV["load.ignore"];
-                        $ignoreList = explode("/", $ignore);
+                        $ignoreList = explode("@", $ignore);
                         foreach($ignoreList as $v){
-                            $v = str_replace('@', '\\', $v);
+                            $v = str_replace('/', '\\', $v);
                             if(strpos($directory, $v) !== false){
                                 $execute = false;
                             }
