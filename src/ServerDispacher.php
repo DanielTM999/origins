@@ -109,7 +109,13 @@ use Throwable;
             $methods = $reflect->getMethods();
             $attribute = $reflect->getAttributes(Controller::class);
             $args = $attribute[0]->getArguments();
-            $location = $args[0];
+            $location = "";
+            if(isset($args[0])){
+                $location = $args[0];
+                if (!str_starts_with($location, '/')) {
+                    $location = '/' . $location;
+                }
+            }
             foreach ($methods as $method){
                $this->findMethodHttp($method, $reflect, $location);
             }
