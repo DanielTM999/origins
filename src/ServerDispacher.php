@@ -122,28 +122,41 @@ use Throwable;
 
         }
 
-        private function findMethodHttp($method, $reflect, $pathMapping){
+        private function findMethodHttp(ReflectionMethod $method, $reflect, $pathMapping){
             $attributes = $method->getAttributes();
+            $namemethod = $method->getName();
             foreach ($attributes as $attribute){
                 $atrubute_name = $attribute->getName();
                 switch ($atrubute_name) {
                     case Get::class:
                         $args = $attribute->getArguments();
+                        if(strpos($args[0], "[action]") !== false){
+                            $args[0] = str_replace("[action]", $namemethod, $args[0]);
+                        }
                         $path = $pathMapping . $args[0];
                         $this->addRouteGet($path, $reflect, $method);
                         break;
                     case Post::class:
                         $args = $attribute->getArguments();
+                        if(strpos($args[0], "[action]") !== false){
+                            $args[0] = str_replace("[action]", $namemethod, $args[0]);
+                        }
                         $path = $pathMapping . $args[0];
                         $this->addRoutePost($path, $reflect, $method);
                         break;
                     case Delete::class:
                         $args = $attribute->getArguments();
+                        if(strpos($args[0], "[action]") !== false){
+                            $args[0] = str_replace("[action]", $namemethod, $args[0]);
+                        }
                         $path = $pathMapping . $args[0];
                         $this->addRouteDelete($path, $reflect, $method);
                         break;
                     case Put::class:
                         $args = $attribute->getArguments();
+                        if(strpos($args[0], "[action]") !== false){
+                            $args[0] = str_replace("[action]", $namemethod, $args[0]);
+                        }
                         $path = $pathMapping . $args[0];
                         $this->addRoutePut($path, $reflect, $method);
                         break;
