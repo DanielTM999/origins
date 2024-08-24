@@ -107,8 +107,11 @@ use Throwable;
 
         private function mappingControllerClass(ReflectionClass $reflect){
             $methods = $reflect->getMethods();
+            $attribute = $reflect->getAttributes(Controller::class);
+            $args = $attribute[0]->getArguments();
+            $location = $args[0];
             foreach ($methods as $method){
-               $this->findMethodHttp($method, $reflect, "");
+               $this->findMethodHttp($method, $reflect, $location);
             }
 
         }
