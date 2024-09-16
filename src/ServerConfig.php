@@ -1,7 +1,9 @@
 <?php
 
     namespace Daniel\Origins;
-    use Override;
+
+use MiddlewarePrority;
+use Override;
     use ReflectionClass;
     use ReflectionProperty;
 
@@ -27,6 +29,16 @@
                     }
                 }
             }
+
+            usort(self::$config, function($a, $b){
+                $attributesA = $a->getAttributes(MiddlewarePrority::class);
+                $attributesB = $b->getAttributes(MiddlewarePrority::class);
+
+                $priorityA = isset($attributesA[0]) ? $attributesA[0]->newInstance()->exception : 0;
+                $priorityB = isset($attributesB[0]) ? $attributesB[0]->newInstance()->exception : 0;
+
+                return $priorityB <=> $priorityA;
+            });
             
             $this->configure();
 
