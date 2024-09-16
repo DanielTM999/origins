@@ -16,28 +16,58 @@
 
         #[Override]
         public function map(): void{
-            $classes = get_declared_classes();
-            foreach ($classes as $class){
-                $reflect = new ReflectionClass($class);
-                $atribute = $reflect->getAttributes(Controller::class);
-
-                if (isset($atribute) && !empty($atribute)){
-                    $this->mappingControllerClass(new ReflectionClass($class));
-                }
-
-                $parentClass = $reflect->getParentClass();
-                if ($parentClass !== false) {
-                    $parentClassName = $parentClass->getName();
-                    if($parentClassName === Middleware::class){
-                        self::$middlewares[] = $reflect;
-                    }else if($parentClassName === ControllerAdvice::class){
-                        self::$controllerErrorReflect = $reflect;
+            $exec = (empty($_ENV["enviroment"]) || $_ENV["enviroment"] == 'dev') ? false : true;
+            if(isset($_SESSION["selectedClass"]) && $exec){
+                foreach ($_SESSION["selectedClass"] as $class){
+                    $reflect = new ReflectionClass($class);
+                    $atribute = $reflect->getAttributes(Controller::class);
+    
+                    if (isset($atribute) && !empty($atribute)){
+                        $this->mappingControllerClass(new ReflectionClass($class));
+                    }
+    
+                    $parentClass = $reflect->getParentClass();
+                    if ($parentClass !== false) {
+                        $parentClassName = $parentClass->getName();
+                        if($parentClassName === Middleware::class){
+                            self::$middlewares[] = $reflect;
+                        }else if($parentClassName === ControllerAdvice::class){
+                            self::$controllerErrorReflect = $reflect;
+                        }
+                    }
+    
+                    if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
+                        $this->addToControllerAdvice($reflect);
                     }
                 }
-
-                if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
-                    $this->addToControllerAdvice($reflect);
-                }
+            }else{
+                unset($_SESSION["selectedClass"]);
+                $classes = get_declared_classes();
+                foreach ($classes as $class){
+                    $reflect = new ReflectionClass($class);
+                    $atribute = $reflect->getAttributes(Controller::class);
+    
+                    if (isset($atribute) && !empty($atribute)){
+                        $this->mappingControllerClass(new ReflectionClass($class));
+                        $_SESSION["selectedClass"][] =  $class;
+                    }
+    
+                    $parentClass = $reflect->getParentClass();
+                    if ($parentClass !== false) {
+                        $parentClassName = $parentClass->getName();
+                        if($parentClassName === Middleware::class){
+                            $_SESSION["selectedClass"][] =  $class;
+                            self::$middlewares[] = $reflect;
+                        }else if($parentClassName === ControllerAdvice::class){
+                            $_SESSION["selectedClass"][] =  $class;
+                            self::$controllerErrorReflect = $reflect;
+                        }
+                    }
+    
+                    if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
+                        $this->addToControllerAdvice($reflect);
+                    }
+                }   
             }
 
             usort(self::$middlewares, function($a, $b){
@@ -370,6 +400,7 @@
             $atribute = $reflection->getAttributes(ControllerAdvice::class);
             if(isset($atribute) && !empty($atribute)){
                 $_SESSION["controllerAdvice"][] = $reflection;
+                $_SESSION["selectedClass"][] =  $reflection->getName();
             }
         }
 
@@ -383,6 +414,5 @@
         }
     }
 
-
-    
+ 
 ?>
