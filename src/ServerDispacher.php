@@ -2,7 +2,6 @@
     namespace Daniel\Origins;
 
     use Exception;
-    use FilterPriority;
     use Override;
     use ReflectionClass;
     use ReflectionMethod;
