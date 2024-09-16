@@ -44,8 +44,10 @@
                 $attributesA = $a->getAttributes(FilterPriority::class);
                 $attributesB = $b->getAttributes(FilterPriority::class);
 
-                $priorityA = isset($attributesA[0]) ? $attributesA[0]->newInstance()->exception : 0;
-                $priorityB = isset($attributesB[0]) ? $attributesB[0]->newInstance()->exception : 0;
+                $priorityAArgs0 = isset($attributesA[0]) ? $attributesA[0]->getArguments() : [0];
+                $priorityBArgs0 = isset($attributesB[0]) ? $attributesB[0]->getArguments() : [0];
+                $priorityA = isset($priorityAArgs0[0]) ? $priorityAArgs0[0] : 0;
+                $priorityB = isset($priorityBArgs0[0]) ? $priorityBArgs0[0] : 0;
 
                 return $priorityB <=> $priorityA;
             });
