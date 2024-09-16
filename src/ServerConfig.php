@@ -1,7 +1,6 @@
 <?php
 
     namespace Daniel\Origins;
-    use FilterPriority;
     use Override;
     use ReflectionClass;
     use ReflectionProperty;
