@@ -2,7 +2,7 @@
     namespace Daniel\Origins;
 
     use Exception;
-    use FilterPrority;
+    use FilterPriority;
     use Override;
     use ReflectionClass;
     use ReflectionMethod;
@@ -42,8 +42,8 @@
             }
 
             usort(self::$middlewares, function($a, $b){
-                $attributesA = $a->getAttributes(FilterPrority::class);
-                $attributesB = $b->getAttributes(FilterPrority::class);
+                $attributesA = $a->getAttributes(FilterPriority::class);
+                $attributesB = $b->getAttributes(FilterPriority::class);
 
                 $priorityA = isset($attributesA[0]) ? $attributesA[0]->newInstance()->exception : 0;
                 $priorityB = isset($attributesB[0]) ? $attributesB[0]->newInstance()->exception : 0;
