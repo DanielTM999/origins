@@ -2,11 +2,12 @@
     namespace Daniel\Origins;
 
     use Exception;
-    use Override;
+use MiddlewarePrority;
+use Override;
     use ReflectionClass;
     use ReflectionMethod;
     use ReflectionProperty;
-use Throwable;
+    use Throwable;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
@@ -39,6 +40,16 @@ use Throwable;
                     $this->addToControllerAdvice($reflect);
                 }
             }
+
+            usort(self::$middlewares, function($a, $b){
+                $attributesA = $a->getAttributes(MiddlewarePrority::class);
+                $attributesB = $b->getAttributes(MiddlewarePrority::class);
+
+                $priorityA = isset($attributesA[0]) ? $attributesA[0]->newInstance()->exception : 0;
+                $priorityB = isset($attributesB[0]) ? $attributesB[0]->newInstance()->exception : 0;
+
+                return $priorityB <=> $priorityA;
+            });
         }
 
         #[Override]
