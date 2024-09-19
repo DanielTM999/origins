@@ -55,18 +55,16 @@ Aqui está um exemplo de como criar um Controller e mapear um método para um en
 ```php
 <?php
 
-namespace App\Controllers;
-
 use Daniel\Origins\Controller;
 use Daniel\Origins\Get;
 use Daniel\Origins\Request;
 
 #[Controller]
-class UserController extends Controller
+class UserController
 {
 
-    #[Inject(Servico::class)]
-    private $servico;
+    #[Inject]
+    private Servico $servico;
 
     #[Get('/users')]
     public function getAllUsers()
