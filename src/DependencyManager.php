@@ -3,7 +3,7 @@
     use ReflectionClass;
     use ReflectionProperty;
 
-    class DependencyManager{
+    class DependencyManager{ 
         private static $dependency_creator = [];
         private static $dependencys = [];
 

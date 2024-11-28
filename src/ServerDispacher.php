@@ -377,7 +377,8 @@
                         }
                     }
                     try {
-                        $method->invokeArgs($entity, $args);
+                        $result = $method->invokeArgs($entity, $args);
+                        $this->echoResult($result);
                     } catch (\Throwable $th) {
                         $reflect = new ReflectionClass($entity);
                         $name = $reflect->getName();
@@ -385,7 +386,8 @@
                         echo "<b>Error:</b> [$name] --> $error";
                     }
                 } else {
-                    $method->invoke($entity);
+                    $result = $method->invoke($entity);
+                    $this->echoResult($result);
                 }
             } catch (Exception $e) {
                 var_dump($e->getMessage());
@@ -410,6 +412,22 @@
                 self::$controllerError->onError($throwable);
             }else{
                 throw $throwable;  
+            }
+        }
+
+        private function echoResult($result){
+            if($result !== null){
+                if (is_scalar($result)){
+                    echo $result;
+                }else if(is_array($result)) {
+                    echo json_encode($result);
+                }else if (is_object($result)) {
+                    if (method_exists($result, '__toString')){
+                        echo $result->__toString();
+                    }else{
+                        echo serialize($result);
+                    }
+                }
             }
         }
     }
