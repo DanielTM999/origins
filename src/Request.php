@@ -40,8 +40,8 @@
 
         public function renderPage(string $page, $viewModel = null): void{
             if ($viewModel !== null) {
-                global $modelData;
-                $modelData = $viewModel;
+                global $model;
+                $model = $viewModel;
             }
             include_once $page;
         }
