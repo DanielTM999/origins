@@ -96,8 +96,8 @@
             }
 
             foreach (self::$routes as $route){
-                $pattern = preg_replace('/\{[^\/]+\}/', '([^\/]+)', $route->path);
-                $pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
+                $pattern = preg_replace('/\{[^\/]+\}/', '([^\/]+)', preg_quote($route->path, '/'));
+                $pattern = '/^' . str_replace('\{[^\/]+\}', '([^\/]+)', $pattern) . '$/';
                 if ($route->method === $requestMethod && preg_match($pattern, $requestPath, $matches)){
                     array_shift($matches);
 
