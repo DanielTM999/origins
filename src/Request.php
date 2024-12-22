@@ -38,7 +38,11 @@
 
     class Response{
 
-        public function renderPage(string $page): void{
+        public function renderPage(string $page, $viewModel = null): void{
+            if ($viewModel !== null) {
+                global $modelData;
+                $modelData = $viewModel;
+            }
             include_once $page;
         }
 
