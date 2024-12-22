@@ -96,7 +96,8 @@
             }
 
             foreach (self::$routes as $route){
-                $pattern = preg_replace('/\{([^\/]+)\}/', '([^\/]+)', preg_quote($route->path, '#'));
+                $pattern = preg_quote($route->path, '#');
+                $pattern = preg_replace('/\{([^}]+)\}/', '([^/]+)', $pattern);
                 $pattern = '#^' . $pattern . '$#';
 
                 Log::info($pattern);
