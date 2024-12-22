@@ -96,15 +96,23 @@
             }
 
             foreach (self::$routes as $route){
-                if ($route->method === $requestMethod && $route->path === $requestPath){
+                $pattern = preg_replace('/\{[^\/]+\}/', '([^\/]+)', $route->path);
+                $pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
+                if ($route->method === $requestMethod && preg_match($pattern, $requestPath, $matches)){
+                    array_shift($matches);
+
+                    $pathVariables = [];
+                    if (preg_match_all('/\{([^\/]+)\}/', $route->path, $varNames)) {
+                        $pathVariables = array_combine($varNames[1], $matches);
+                    }
 
                     if ($jsonData !== null) {
-                        $req = new Request($headers, $jsonData, "");
+                        $req = new Request($headers, $jsonData, $pathVariables);
                     } else {
                         if ($requestMethod === "GET") {
-                            $req = new Request($headers, $_GET, "");
+                            $req = new Request($headers, $_GET, $pathVariables);
                         } else {
-                            $req = new Request($headers, $_POST, "");
+                            $req = new Request($headers, $_POST, $pathVariables);
                         }
                     }
 
