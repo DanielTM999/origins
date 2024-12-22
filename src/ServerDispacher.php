@@ -100,9 +100,6 @@
                 $pattern = preg_replace('/\\\{([^}]+)\\\}/', '([^/]+)', $pattern);
                 $pattern = '#^' . $pattern . '$#';
 
-
-                Log::info($pattern);
-
                 if ($route->method === $requestMethod && preg_match($pattern, $requestPath, $matches)){
                     array_shift($matches);
 
