@@ -60,6 +60,21 @@ Middlewares permitem a interceptação e manipulação de solicitações antes d
 
 Para criar um middleware, extenda a classe `Middleware` e implemente o método `onPerrequest`. O framework garante que o middleware seja executado antes que os controllers sejam acionados.
 
+## Configuração Inicial
+
+para iniciar crie um arquivo .htaccess na raiz do seu projeto, isso será o motor de direcionamento das requisições
+
+```.htaccess
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L]
+
+
+```
+
+
 ### Exemplo
 
 Um middleware para registro de logs de solicitações:
