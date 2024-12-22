@@ -96,8 +96,8 @@
             }
 
             foreach (self::$routes as $route){
-                $pattern = preg_replace('/\{([^\/]+)\}/', '([^\/]+)', preg_quote($route->path, '/'));
-                $pattern = '/^' . $pattern . '$/';
+                $pattern = preg_replace('/\{([^\/]+)\}/', '([^\/]+)', preg_quote($route->path, '#'));
+                $pattern = '#^' . $pattern . '$#';
 
                 Log::info($pattern);
 
@@ -109,15 +109,10 @@
                         $pathVariables = array_combine($varNames[1], $matches);
                     }
 
-                    if ($jsonData !== null) {
-                        $req = new Request($headers, $jsonData, $pathVariables);
-                    } else {
-                        if ($requestMethod === "GET") {
-                            $req = new Request($headers, $_GET, $pathVariables);
-                        } else {
-                            $req = new Request($headers, $_POST, $pathVariables);
-                        }
-                    }
+                    $req = ($jsonData !== null)
+                        ? new Request($headers, $jsonData, $pathVariables)
+                        : new Request($headers, ($requestMethod === "GET" ? $_GET : $_POST), $pathVariables);
+
 
                     $instance = $this->getInstanceBy($route->class, $Dmanager);
                     $method = $route->methodClass;
