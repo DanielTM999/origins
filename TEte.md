@@ -24,7 +24,7 @@ Para começar a usar o framework Origins, siga estas etapas simples:
 
 ## Principais Requisitos
 
-PHP 8.0
+- PHP 8.0 ou superior.
 
 ## Conceitos Principais
 
@@ -37,6 +37,8 @@ O framework Origins é construído com base em alguns conceitos fundamentais:
 - **Atributos de Roteamento**: Os atributos `Get`, `Post`, `Delete` e `Put` mapeiam métodos de controllers para os endpoints da API.
 
 - **Middleware**: Classes que interceptam solicitações antes de alcançarem os controllers, permitindo a implementação de lógicas específicas como autenticação ou logging.
+
+- **FilterPriority**: Um atributo que define a prioridade de execução de Middlewares quando múltiplos filtros estão configurados.
 
 - **Controller Advice**: Permite um tratamento centralizado e personalizado de exceções e erros que ocorrem durante a execução das requisições.
 
@@ -85,31 +87,29 @@ final class IpFilter extends Middleware
 
 ### Prioridade de Middleware
 
-O atributo `FilterPriority` pode ser usado para definir a prioridade de execução dos Middlewares. Middlewares com maior prioridade (valor numérico mais altos) serão executados antes.
+O atributo `FilterPriority` pode ser usado para definir a prioridade de execução dos Middlewares. Middlewares com maior prioridade (valor numérico mais baixo) serão executados antes.
 
 ```php
 use Daniel\Origins\FilterPriority;
 
-#[FilterPriority(10)]
+#[FilterPriority(1)]
 final class HighPriorityFilter extends Middleware
 {
     // Lógica do Middleware
 }
 
-#[FilterPriority(1)]
+#[FilterPriority(10)]
 final class LowPriorityFilter extends Middleware
 {
     // Lógica do Middleware
 }
 ```
 
-
 ## Controller Advice
 
 A funcionalidade de Controller Advice permite capturar e tratar exceções de forma centralizada, promovendo maior organização do código.
 
 Para usar, extenda a classe `ControllerAdvice` e sobrescreva o método `onError`. Você pode implementar tratamentos específicos para diferentes tipos de exceções.
-
 
 ### Exemplo
 
@@ -144,23 +144,26 @@ O sistema de logging integrado permite registrar eventos em arquivos para monito
 ### Exemplo de Uso
 
 ```php
-Log::info("Usuário logado com sucesso", "app.log");
-Log::warning("Tentativa de acesso sem permissão", "security.log");
-Log::error("Erro inesperado ao processar requisição", "errors.log");
+Log::info("Usuário logado com sucesso", "logs/app.log");
+Log::warning("Tentativa de acesso sem permissão", "logs/security.log");
+Log::error("Erro inesperado ao processar requisição", "logs/errors.log");
 ```
 
 ## Renderização de Views
 
 O framework permite renderizar páginas dinâmicas com dados. Use o método `renderPage` para passar um modelo de dados a uma view.
 
+### Exemplo
 
 ```php
-// no controlador
-renderPage("index.php", ["number" => rand()]);
-
-//no index.php
-global $model;
-echo $model["number"];
+public function renderPage(string $pagina, $modelo = null): void
+{
+    if ($modelo !== null) {
+        global $model;
+        $model = $modelo;
+    }
+    include_once $pagina;
+}
 ```
 
 ## Path Variables
@@ -174,89 +177,20 @@ $variaveis = $this->getPathVar();
 $id = $variaveis['id'] ?? null;
 ```
 
+## Personalizando a Configuração
 
+Para personalizar o comportamento do framework, extenda a classe `OnInit` e sobrescreva o método `ConfigOnInit`.
 
-## Exemplo de Código Controller
-
-Aqui está um exemplo de como criar um Controller e mapear um método para um endpoint:
+### Exemplo
 
 ```php
-<?php
-
-use Daniel\Origins\Controller;
-use Daniel\Origins\Get;
-use Daniel\Origins\Request;
-
-#[Controller]
-class UserController
+class MinhaConfig extends OnInit
 {
-
-    #[Inject]
-    private Servico $servico;
-
-    #[Get('/users')]
-    public function getAllUsers()
+    #[Override]
+    public function ConfigOnInit(): void
     {
-        
-    }
-
-    #[Get("/")]
-    public function intex(Request $req){
-        $headers = $req->getHeaders();
-        $body = $req->getBody();
-    }   
-
-    #[Get("/number")]
-    public function getNumber(){
-        echo $this->servico->getNumber();
+        // Configurações personalizadas
     }
 }
-
-//true se for apenas 1 instacia e false se for por request
-#[Dependency(true)]
-class Servico{
-
-    public function getNumber() : int{
-        return rand();
-    }
-
-}
-
-?>
 ```
 
-## Exemplo de Código Controller
-
-Aqui está um exemplo de como criar o index:
-
-```php
-<?php
-    require "./vendor/autoload.php";
-    use Daniel\Origins\Origin;
-
-    $app = Origin::initialize();
-    $app->run();
-
-?>
-```
-
-## Personalizando a Configuração (Opcional)
-
-Se você precisar personalizar a configuração do framework, pode extender a classe:
-
-- **`OnInit.php`**: Este arquivo contem uma classe abstrata que define um método para configurar o framework durante a inicialização.
-
-```php
-<?php
-
-   class MinhaConfig extends OnInit{
-        //possivel injetar dependecia na inicalização porem apenas classes configuradas para inicar no mesmo momento
-    
-        #[Override]
-        public function ConfigOnInit() : void{
-            //sua consfig
-        }
-    }
-
-?>
-```
