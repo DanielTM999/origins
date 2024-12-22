@@ -236,7 +236,29 @@
         }
 
         private function renderError404Page()
-        {
+        {   
+            try {
+                if(isset($_ENV["notfoundPage"])){
+                    $htmlFilePath = $_ENV["notfoundPage"];
+                    if (strpos($htmlFilePath, '{base.dir}') !== false) {
+                        $baseDir = $_ENV["base.dir"];
+                        $htmlFilePath = str_replace('{base.dir}', $baseDir, $htmlFilePath);
+                    }
+                    
+                    if (file_exists($htmlFilePath)){
+                        return file_get_contents($htmlFilePath);
+                    }
+                    return $this->getDefaltError404Page();
+                }else{
+                    return $this->getDefaltError404Page();
+                }
+            } catch (\Throwable $th) {
+                return $this->getDefaltError404Page();
+            }
+
+        }
+
+        private function getDefaltError404Page(){
             $html = '
                     <!DOCTYPE html>
                     <html lang="pt-br">
@@ -287,7 +309,6 @@
                     </head>
                     <body>
                         <div class="error-container">
-                            <img class="error-image" src="/src/4835105_404_icon.png" alt="Erro 404 - Página não encontrada">
                             <h1>Oops! Página não encontrada</h1>
                             <p>A página que você está procurando não foi encontrada. <br>Verifique o URL ou <a href="/">volte para a página inicial</a>.</p>
                         </div>
