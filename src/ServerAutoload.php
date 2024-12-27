@@ -76,7 +76,7 @@
         }
 
         private function containsClassView($directory) {
-            return strpos($directory, "views") !== false || strpos($directory, "view") !== false;
+            return preg_match('/\bviews?\b/', $directory);
         }
     } 
 
