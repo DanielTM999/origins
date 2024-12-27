@@ -30,8 +30,12 @@
             return $this->body;
         }
 
-        public function getPathVar(){
-            return $this->pathVar;
+        public function getPathVar(string $varName = null){
+            if(isset($varName)){
+                return $this->pathVar[$varName] ?? null;
+            }else{
+                return $this->pathVar ?? [];
+            }
         }
 
     }
