@@ -13,25 +13,34 @@
         } 
 
         public function start() : void{
-            $classes = get_declared_classes();
-            foreach($classes as $c){
-                $reflect = new ReflectionClass($c);
-                $atrbute = $reflect->getAttributes(Dependency::class);
-                if(!empty($atrbute)){
-                    if(!$reflect->isInterface()){
-                        self::$dependency_creator[] = $reflect;
-                    }
-                }
 
-                $parentClass = $reflect->getParentClass();
-                if ($parentClass !== false) {
-                    $parentClassName = $parentClass->getName();
-                    if($parentClassName === OnInit::class){
-                        self::$dependency_creator[] = $reflect;
+            if(isset($_SESSION["origins.dependencys"])){
+                $classes = $_SESSION["origins.dependencys"];
+                foreach($classes as $c){
+                    self::$dependency_creator[] = new ReflectionClass($c);
+                }
+            }else{
+                $classes = get_declared_classes();
+                foreach($classes as $c){
+                    $reflect = new ReflectionClass($c);
+                    $atrbute = $reflect->getAttributes(Dependency::class);
+                    if(!empty($atrbute)){
+                        if(!$reflect->isInterface()){
+                            self::$dependency_creator[] = $reflect;
+                        }
+                    }
+    
+                    $parentClass = $reflect->getParentClass();
+                    if ($parentClass !== false) {
+                        $parentClassName = $parentClass->getName();
+                        if($parentClassName === OnInit::class){
+                            self::$dependency_creator[] = $reflect;
+                        }
                     }
                 }
             }
             $this->create();
+
         }
 
         public function addDependency(string $dependency, object $object){

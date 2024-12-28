@@ -1,6 +1,7 @@
 <?php
     namespace Daniel\Origins;
     use Override;
+use ReflectionClass;
 
     class ServerAutoload extends Autoloader{
         private static string $metaDadosPath = "./origins.json";
@@ -84,10 +85,48 @@
                 require_once $file;
             }
 
+            $classes = get_declared_classes();
+            $configurations = [];
+            $controllers = [];
+            $dependecies = [];
+            $controllerAdvice = "";
+            foreach ($classes as $class){
+                $reflect = new ReflectionClass($class);
+                $parentClass = $reflect->getParentClass();
+                $atributeController = $reflect->getAttributes(Controller::class);
+                $atrbuteDependency = $reflect->getAttributes(Dependency::class);
+
+                if ($parentClass !== false) {
+                    $parentClassName = $parentClass->getName();
+                    if($parentClassName === OnInit::class){
+                        $configurations[] = $class;
+                        $dependecies[] = $class;
+                    }else if($parentClassName === ControllerAdvice::class){
+                        $controllerAdvice = $class;
+                    }
+                }
+
+                if (isset($atributeController) && !empty($atributeController)){
+                    $controllers[] = $class;
+                }
+
+                if (isset($atrbuteDependency) && !empty($atrbuteDependency)){
+                    $dependecies[] = $class;
+                }
+
+            }
+
             $this->addCache([
                 "baseDir" => $dirBase,
-                "loadedFiles" => $this->loadedFiles
+                "loadedFiles" => $this->loadedFiles,
+                "configurations" => [
+                    "initializers" => $configurations,
+                    "controllers" => $controllers,
+                    "dependecies" => $dependecies,
+                    "controllerAdvice" => $controllerAdvice
+                ],
             ]);
+            $this->setSessionsCash($dependecies, $controllers, $configurations);
         }
 
         private function loadElementsByCache($cache){
@@ -102,6 +141,19 @@
                 foreach($loadedFiles as $file){
                     require_once $file;
                 }
+
+                $intializers = null;
+                $dependecies = null;
+                $controllers = null;
+
+                $configurations = $cache["configurations"] ?? null;
+                if(isset($configurations)){
+                    $intializers = $configurations["initializers"];
+                    $dependecies = $configurations["dependecies"];
+                    $controllers = $configurations["controllers"];
+                }
+
+                $this->setSessionsCash($dependecies, $controllers, $intializers);
             }else{
                 $this->loadElements();
             }
@@ -145,6 +197,12 @@
         private function addCache($settings){
             $jsonData = json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents(self::$metaDadosPath, $jsonData);
+        }
+
+        private function setSessionsCash($dependecies, $controllers, $initializers){
+            $_SESSION["origins.dependencys"] = $dependecies;
+            $_SESSION["origins.controllers"] = $controllers;
+            $_SESSION["origins.initializers"] = $initializers;
         }
     } 
 
