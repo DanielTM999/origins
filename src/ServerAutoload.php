@@ -20,10 +20,10 @@
                         $this->loadElements();
                     }
                 }else{
-                    $this->loadElements();
+                    $this->loadElements(false);
                 }
             }else{
-                $this->loadElements();
+                $this->loadElements(false);
             }
         }
 
@@ -76,7 +76,7 @@
             }
         }
 
-        private function loadElements(){
+        private function loadElements(bool $addCache = true){
             $dirBase = $this->getBaseDir();
             $_ENV["base.dir"] = $dirBase;
             $this->autoloadFromDirectory($dirBase);
@@ -119,17 +119,19 @@
 
             }
 
-            $this->addCache([
-                "baseDir" => $dirBase,
-                "loadedFiles" => $this->loadedFiles,
-                "configurations" => [
-                    "initializers" => $configurations,
-                    "middlewares" => $middlewares,
-                    "controllers" => $controllers,
-                    "dependecies" => $dependecies,
-                    "controllerAdvice" => $controllerAdvice,
-                ],
-            ]);
+            if($addCache){
+                $this->addCache([
+                    "baseDir" => $dirBase,
+                    "loadedFiles" => $this->loadedFiles,
+                    "configurations" => [
+                        "initializers" => $configurations,
+                        "middlewares" => $middlewares,
+                        "controllers" => $controllers,
+                        "dependecies" => $dependecies,
+                        "controllerAdvice" => $controllerAdvice,
+                    ],
+                ]);
+            }
             $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice);
         }
 
