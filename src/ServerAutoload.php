@@ -90,14 +90,14 @@
         }
 
         private function loadElementsByCache($cache){
-            $baseDir = $cache["baseDir"];
-            if(isset($baseDir)){
+            if(isset($cache["baseDir"])){
+                $baseDir = $cache["baseDir"];
                 $_ENV["base.dir"] = $baseDir;
             }else{
                 $_ENV["base.dir"] = $this->getBaseDir();
             }
-            $loadedFiles = $cache["loadedFiles"];
-            if(isset($loadedFiles)){
+            if(isset($cache["loadedFiles"])){
+                $loadedFiles = $cache["loadedFiles"];
                 foreach($loadedFiles as $file){
                     require_once $file;
                 }
