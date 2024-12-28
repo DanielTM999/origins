@@ -16,60 +16,29 @@
 
         #[Override]
         public function map(): void{
-            $exec = (empty($_ENV["enviroment"]) || $_ENV["enviroment"] == 'dev') ? false : true;
-            if(isset($_SESSION["selectedClass"]) && $exec){
-                foreach ($_SESSION["selectedClass"] as $class){
-                    $reflect = new ReflectionClass($class);
-                    $atribute = $reflect->getAttributes(Controller::class);
-    
-                    if (isset($atribute) && !empty($atribute)){
-                        $this->mappingControllerClass(new ReflectionClass($class));
-                    }
-    
-                    $parentClass = $reflect->getParentClass();
-                    if ($parentClass !== false) {
-                        $parentClassName = $parentClass->getName();
-                        if($parentClassName === Middleware::class){
-                            self::$middlewares[] = $reflect;
-                        }else if($parentClassName === ControllerAdvice::class){
-                            self::$controllerErrorReflect = $reflect;
-                        }
-                    }
-    
-                    if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
-                        $this->addToControllerAdvice($reflect);
-                    }
-                }
-            }else{
-                unset($_SESSION["selectedClass"]);
-                $classes = get_declared_classes();
-                foreach ($classes as $class){
-                    $reflect = new ReflectionClass($class);
-                    $atribute = $reflect->getAttributes(Controller::class);
-    
-                    if (isset($atribute) && !empty($atribute)){
-                        $this->mappingControllerClass(new ReflectionClass($class));
-                        $_SESSION["selectedClass"][] =  $class;
-                    }
-    
-                    $parentClass = $reflect->getParentClass();
-                    if ($parentClass !== false) {
-                        $parentClassName = $parentClass->getName();
-                        if($parentClassName === Middleware::class){
-                            $_SESSION["selectedClass"][] =  $class;
-                            self::$middlewares[] = $reflect;
-                        }else if($parentClassName === ControllerAdvice::class){
-                            $_SESSION["selectedClass"][] =  $class;
-                            self::$controllerErrorReflect = $reflect;
-                        }
-                    }
-    
-                    if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
-                        $this->addToControllerAdvice($reflect);
-                    }
-                }   
-            }
+            if(isset($_SESSION["origins.loaders"])){
+                $loaders = $_SESSION["origins.loaders"];    
+                $controllers = $loaders["controllers"] ?? [];
+                $middlewares = $loaders["middlewares"] ?? [];
+                $controllerAdvice = $loaders["controllerAdvice"] ?? null;
 
+                if(isset($controllerAdvice)){
+                    $reflect = new ReflectionClass($controllerAdvice);
+                    self::$controllerErrorReflect = $reflect;
+                }
+                foreach($controllers as $controller){
+                    $reflect = new ReflectionClass($controller);
+                    $this->mappingControllerClass($reflect);
+                }
+                foreach($middlewares as $middleware){
+                    $reflect = new ReflectionClass($middleware);
+                    self::$middlewares[] = $reflect;
+                }
+
+            }else{
+                $this->mapIfNotloaded();
+            }
+            
             usort(self::$middlewares, function($a, $b){
                 $attributesA = $a->getAttributes(FilterPriority::class);
                 $attributesB = $b->getAttributes(FilterPriority::class);
@@ -454,6 +423,62 @@
                         echo serialize($result);
                     }
                 }
+            }
+        }
+
+        private function mapIfNotloaded(){
+            $exec = (empty($_ENV["enviroment"]) || $_ENV["enviroment"] == 'dev') ? false : true;
+            if(isset($_SESSION["selectedClass"]) && $exec){
+                foreach ($_SESSION["selectedClass"] as $class){
+                    $reflect = new ReflectionClass($class);
+                    $atribute = $reflect->getAttributes(Controller::class);
+    
+                    if (isset($atribute) && !empty($atribute)){
+                        $this->mappingControllerClass(new ReflectionClass($class));
+                    }
+    
+                    $parentClass = $reflect->getParentClass();
+                    if ($parentClass !== false) {
+                        $parentClassName = $parentClass->getName();
+                        if($parentClassName === Middleware::class){
+                            self::$middlewares[] = $reflect;
+                        }else if($parentClassName === ControllerAdvice::class){
+                            self::$controllerErrorReflect = $reflect;
+                        }
+                    }
+    
+                    if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
+                        $this->addToControllerAdvice($reflect);
+                    }
+                }
+            }else{
+                unset($_SESSION["selectedClass"]);
+                $classes = get_declared_classes();
+                foreach ($classes as $class){
+                    $reflect = new ReflectionClass($class);
+                    $atribute = $reflect->getAttributes(Controller::class);
+    
+                    if (isset($atribute) && !empty($atribute)){
+                        $this->mappingControllerClass(new ReflectionClass($class));
+                        $_SESSION["selectedClass"][] =  $class;
+                    }
+    
+                    $parentClass = $reflect->getParentClass();
+                    if ($parentClass !== false) {
+                        $parentClassName = $parentClass->getName();
+                        if($parentClassName === Middleware::class){
+                            $_SESSION["selectedClass"][] =  $class;
+                            self::$middlewares[] = $reflect;
+                        }else if($parentClassName === ControllerAdvice::class){
+                            $_SESSION["selectedClass"][] =  $class;
+                            self::$controllerErrorReflect = $reflect;
+                        }
+                    }
+    
+                    if(!isset($_SESSION["controllerAdvice"]) || empty($_SESSION["controllerAdvice"])){
+                        $this->addToControllerAdvice($reflect);
+                    }
+                }   
             }
         }
     }

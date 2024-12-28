@@ -89,6 +89,7 @@ use ReflectionClass;
             $configurations = [];
             $controllers = [];
             $dependecies = [];
+            $middlewares = [];
             $controllerAdvice = "";
             foreach ($classes as $class){
                 $reflect = new ReflectionClass($class);
@@ -103,6 +104,8 @@ use ReflectionClass;
                         $dependecies[] = $class;
                     }else if($parentClassName === ControllerAdvice::class){
                         $controllerAdvice = $class;
+                    }else if($parentClassName === Middleware::class){
+                        $middlewares[] = $class;
                     }
                 }
 
@@ -121,12 +124,13 @@ use ReflectionClass;
                 "loadedFiles" => $this->loadedFiles,
                 "configurations" => [
                     "initializers" => $configurations,
+                    "middlewares" => $middlewares,
                     "controllers" => $controllers,
                     "dependecies" => $dependecies,
-                    "controllerAdvice" => $controllerAdvice
+                    "controllerAdvice" => $controllerAdvice,
                 ],
             ]);
-            $this->setSessionsCash($dependecies, $controllers, $configurations);
+            $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice);
         }
 
         private function loadElementsByCache($cache){
@@ -145,15 +149,19 @@ use ReflectionClass;
                 $intializers = null;
                 $dependecies = null;
                 $controllers = null;
+                $middlewares = null;
+                $controllerAdvice = null;
 
                 $configurations = $cache["configurations"] ?? null;
                 if(isset($configurations)){
                     $intializers = $configurations["initializers"];
                     $dependecies = $configurations["dependecies"];
                     $controllers = $configurations["controllers"];
+                    $middlewares = $configurations["middlewares"];
+                    $controllerAdvice = $configurations["controllerAdvice"];
                 }
 
-                $this->setSessionsCash($dependecies, $controllers, $intializers);
+                $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice);
             }else{
                 $this->loadElements();
             }
@@ -199,10 +207,20 @@ use ReflectionClass;
             file_put_contents(self::$metaDadosPath, $jsonData);
         }
 
-        private function setSessionsCash($dependecies, $controllers, $initializers){
+        private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice){
+            $controllerAdvice = ($controllerAdvice === "") ? null : $controllerAdvice;
             $_SESSION["origins.dependencys"] = $dependecies;
             $_SESSION["origins.controllers"] = $controllers;
             $_SESSION["origins.initializers"] = $initializers;
+            $_SESSION["origins.middlewares"] = $middlewares;
+            $_SESSION["origins.controllerAdvice"] = $controllerAdvice;
+            $_SESSION["origins.loaders"] = [
+                "dependencys" => $dependecies,
+                "controllers" => $controllers,
+                "initializers" => $initializers,
+                "middlewares" => $middlewares,
+                "controllerAdvice" => $controllerAdvice,
+            ];
         }
     } 
 
