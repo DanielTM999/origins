@@ -3,6 +3,7 @@
     use Override;
 
     class ServerAutoload extends Autoloader{
+        private static string $metaDadosPath = "./origins.json";
         private array $loadedFiles = [];
 
         #[Override]
@@ -126,7 +127,7 @@
         }
 
         private function getCache(){
-            $filePath = './autoload.json';
+            $filePath = self::$metaDadosPath;
             if (!file_exists($filePath)) {
                 return null;
             }
@@ -143,9 +144,7 @@
 
         private function addCache($settings){
             $jsonData = json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            $filePath = './autoload.json';
-
-            file_put_contents($filePath, $jsonData);
+            file_put_contents(self::$metaDadosPath, $jsonData);
         }
     } 
 
