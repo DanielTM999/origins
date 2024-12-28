@@ -1,9 +1,9 @@
 <?php
     namespace Daniel\Origins;
     use Override;
-use ReflectionClass;
+    use ReflectionClass;
 
-    class ServerAutoload extends Autoloader{
+    final class ServerAutoload extends Autoloader{
         private static string $metaDadosPath = "./origins.json";
         private array $loadedFiles = [];
 

@@ -16,17 +16,28 @@
 
         #[Override]
         public function ConfigOnInit() : void{
-            $classes = get_declared_classes();
-            foreach ($classes as $class){
-                $reflect = new ReflectionClass($class);
-                $parentClass = $reflect->getParentClass();
-                if ($parentClass !== false) {
-                    $parentClassName = $parentClass->getName();
-                    if($parentClassName === OnInit::class){
-                        self::$config[] = $reflect;
+
+
+            if(isset($_SESSION["origins.initializers"])){
+                $classes = $_SESSION["origins.initializers"] ?? [];
+                foreach ($classes as $class){
+                    self::$config[] = new ReflectionClass($class);
+                }
+            }else{
+                $classes = get_declared_classes();
+                foreach ($classes as $class){
+                    $reflect = new ReflectionClass($class);
+                    $parentClass = $reflect->getParentClass();
+                    if ($parentClass !== false) {
+                        $parentClassName = $parentClass->getName();
+                        if($parentClassName === OnInit::class){
+                            self::$config[] = $reflect;
+                        }
                     }
                 }
             }
+
+            
 
             usort(self::$config, function($a, $b){
                 $attributesA = $a->getAttributes(FilterPriority::class);
