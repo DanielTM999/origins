@@ -13,6 +13,7 @@
 
         private string $statusFile;
         private bool $isFinished;
+        private string $resultContent;
 
         public function __construct(private Runnable $runnable){
             $this->runnable = $runnable;
@@ -65,6 +66,7 @@
             $exists = file_exists($this->statusFile);
             if($exists){
                 $content = file_get_contents($this->statusFile);
+                $this->resultContent = $content;
                 if (strpos($content, 'thread_task_status: done') !== false) {
                     $this->isFinished = true;
                     unlink($this->statusFile);
@@ -82,6 +84,10 @@
             while (!$this->isFinished()) {
                 usleep(100000); 
             }
+        }
+
+        public function getActionResult(): string{
+            return $this->resultContent ?? null;
         }
 
     }
