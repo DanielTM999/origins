@@ -1,6 +1,6 @@
 # languages
 
-- [Português (PT)](#documentacao-do-framework-php-origins)
+- [Português (PT)](#documentação-do-framework-php-origins)
 - [English (EN)](#framework-documentation-php-origins)
 
 
