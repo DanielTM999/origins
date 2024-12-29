@@ -1,4 +1,396 @@
+# languages
+
+- [Português (PT)](#documentacao-do-framework-php-origins)
+- [English (EN)](#framework-documentation-php-origins)
+
+
+# Framework Documentation PHP Origins
+
+## Index
+
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Main Requirements](#main-requirements)
+- [Key Concepts](#key-concepts)
+- [Basic Usage](#basic-usage)
+- [Middleware](#middleware)
+  - [Example](#example)
+  - [Middleware Priority](#middleware-priority)
+- [Initial Configuration](#initial-configuration)
+- [Controller Advice](#controller-advice)
+  - [Example](#example-1)
+- [Log](#log)
+  - [Usage Example](#usage-example)
+- [View Rendering](#view-rendering)
+- [Path Variables](#path-variables)
+  - [Example](#example-2)
+- [Controller Code Example](#controller-code-example)
+- [Customizing Configuration (Optional)](#customizing-configuration-optional)
+- [Threads with the `Thread` Class](#threads-with-the-thread-class)
+  - [Implementing the `Runnable` Interface](#implementing-the-runnable-interface)
+  - [Using the `Thread` Class](#using-the-thread-class)
+  - [Available Methods in the `Thread` Class](#available-methods-in-the-thread-class)
+  - [Technical Details](#technical-details)
+  - [Benefits](#benefits)
+
+## Introduction
+
+Origins is a minimalist PHP framework designed to simplify web application development. It provides a flexible and scalable structure for efficiently building web applications.
+
+## Installation
+
+To start using the Origins framework, follow these simple steps:
+
+1. Clone the Origins repository into your development environment:
+
+    ```bash
+    git clone https://github.com/DanielTM999/origins.git
+    ```
+
+2. Install Composer dependencies:
+
+    ```bash
+    composer require danieltm/origins
+    ```
+
+3. Configure your web server to route requests to the framework's `public` directory.
+
+## Main Requirements
+
+PHP 8.0
+
+## Key Concepts
+
+The Origins framework is built upon a few core concepts:
+
+- **Controller**: Classes marked with the `Controller` attribute containing methods corresponding to API endpoints.
+
+- **Dependency Injection**: Automatically manages class creation and injects necessary dependencies.
+
+- **Routing Attributes**: The `Get`, `Post`, `Delete`, and `Put` attributes map controller methods to API endpoints.
+
+- **Middleware**: Classes that intercept requests before they reach controllers, enabling logic implementation like authentication or logging.
+
+- **Controller Advice**: Enables centralized and customized error handling for exceptions during request execution.
+
+- **Log**: An integrated system for logging events and errors, used for monitoring and debugging.
+
+- **View Rendering**: Supports rendering pages with dynamic data models.
+
+## Basic Usage
+
+To create a web application using the Origins framework, follow these steps:
+
+1. **Define Your Controllers**: Create Controller classes and mark them with the `Controller` attribute.
+
+2. **Define Endpoints**: Use the `Get`, `Post`, `Delete`, and `Put` attributes to map controller methods to API endpoints.
+
+3. **Initialize the Framework**: Create an instance of `Origin` and call the `run()` method to start routing and dispatching requests.
+
+## Middleware
+
+Middlewares allow request interception and manipulation before they reach controllers. A common use case is logging or security validations.
+
+To create a middleware, extend the `Middleware` class and implement the `onPerrequest` method. The framework ensures that middleware is executed before controllers are triggered.
+
+### Example
+
+A middleware for logging requests:
+
+```php
+final class IpFilter extends Middleware
+{
+    #[Override]
+    public function onPerrequest(Request $req): void
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        Log::info("$path: $method", "logs/requests.log");
+
+        if ($method === "POST") {
+            $body = json_encode($req->getBody());
+            Log::info("$path ==> body: $body", "logs/requests.log");
+        }
+    }
+}
+```
+
+### Middleware Priority
+
+The `FilterPriority` attribute can be used to set the execution priority of middlewares. Higher-priority middlewares (numerically larger values) are executed first.
+
+```php
+use Daniel\Origins\FilterPriority;
+
+#[FilterPriority(10)]
+final class HighPriorityFilter extends Middleware
+{
+    // Middleware Logic
+}
+
+#[FilterPriority(1)]
+final class LowPriorityFilter extends Middleware
+{
+    // Middleware Logic
+}
+```
+
+## Initial Configuration
+
+Create a `.htaccess` file in the root of your project to route requests. This serves as the request engine:
+
+```.htaccess
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L]
+```
+
+## Controller Advice
+
+Controller Advice enables centralized and organized exception handling.
+
+To use, extend the `ControllerAdvice` class and override the `onError` method. Implement specific handling for different exception types.
+
+### Example
+
+Managing authentication and permissions:
+
+```php
+class AuthExceptionHandler extends ControllerAdvice
+{
+    #[Override]
+    public function onError(Throwable $exception): void
+    {
+        if ($exception instanceof AuthorizationException) {
+            header("Location: /login");
+            exit;
+        }
+
+        if ($exception instanceof AuthorityAuthorizationException) {
+            echo "You do not have permission to access this page.";
+            exit;
+        }
+
+        echo "Internal server error.";
+        exit;
+    }
+}
+```
+
+## Log
+
+The integrated logging system allows recording events in files for monitoring or auditing. Use the `Log` class to record information, warnings, or errors.
+
+### Usage Example
+
+```php
+Log::info("User successfully logged in", "app.log");
+Log::warning("Unauthorized access attempt", "security.log");
+Log::error("Unexpected error processing request", "errors.log");
+```
+
+## View Rendering
+
+The framework allows rendering dynamic pages with data. Use the `renderPage` method to pass a data model to a view.
+
+```php
+// in the controller
+renderPage("index.php", ["number" => rand()]);
+
+// in index.php
+global $model;
+echo $model["number"];
+```
+
+## Path Variables
+
+Endpoints can contain path variables, like `{id}`. Use the `getPathVar` method to retrieve these variables as an associative array.
+
+### Example
+
+```php
+$variables = $this->getPathVar();
+$id = $variables['id'] ?? null;
+```
+
+## Controller Code Example
+
+Here is an example of creating a Controller and mapping a method to an endpoint:
+
+```php
+<?php
+
+use Daniel\Origins\Controller;
+use Daniel\Origins\Get;
+use Daniel\Origins\Request;
+
+#[Controller]
+class UserController
+{
+
+    #[Inject]
+    private Service $service;
+
+    #[Get('/users')]
+    public function getAllUsers()
+    {
+        // Logic
+    }
+
+    #[Get("/")]
+    public function index(Request $req){
+        $headers = $req->getHeaders();
+        $body = $req->getBody();
+    }   
+
+    #[Get("/number")]
+    public function getNumber(){
+        echo $this->service->getNumber();
+    }
+}
+
+// true for a single instance, false for per-request
+#[Dependency(true)]
+class Service{
+
+    public function getNumber() : int{
+        return rand();
+    }
+}
+
+?>
+```
+
+## Controller Code Example
+
+Here is an example of creating the index:
+
+```php
+<?php
+    require "./vendor/autoload.php";
+    use Daniel\Origins\Origin;
+
+    $app = Origin::initialize();
+    $app->run();
+
+?>
+```
+
+## Customizing Configuration (Optional)
+
+If you need to customize the framework configuration, extend the class:
+
+- **`OnInit.php`**: This file contains an abstract class defining a method to configure the framework during initialization.
+
+```php
+<?php
+
+class MyConfig extends OnInit{
+    // Possible to inject dependencies during initialization but only for classes configured to start simultaneously
+
+    #[Override]
+    public function ConfigOnInit() : void{
+        // Your config
+    }
+}
+
+?>
+```
+
+## Threads with the `Thread` Class
+
+The framework now supports running tasks in threads using the `Thread` class. This functionality is useful for executing long-running tasks in the background without blocking the main application execution.
+
+### Implementing the `Runnable` Interface
+
+To use the `Thread` class, implement the `Runnable` interface and define the `run` method, which will contain the task logic.
+
+```php
+namespace Daniel\Origins;
+
+interface Runnable
+{
+    public function run();
+}
+```
+
+### Using the `Thread` Class
+
+The `Thread` class enables creating and managing threads simply. Here's an example:
+
+```php
+namespace Daniel\Origins;
+
+final class ExampleTask implements Runnable
+{
+    public function run()
+    {
+        // Logic for the task to run in the background
+        echo "Running task in thread...\n";
+    }
+}
+
+$runnable = new ExampleTask();
+$thread = new Thread($runnable);
+$thread->start();
+
+// Waits until the task is completed
+$thread->waitUntilFinished();
+
+echo "Task completed!\n";
+```
+
+### Available Methods in the `Thread` Class
+
+- **`start()`**: Starts thread execution.
+- **`isFinished(): bool`**: Checks if the task is completed.
+- **`waitUntilFinished(): void`**: Blocks execution until the task is completed.
+
+### Technical Details
+
+1. The `Thread` class uses temporary files to manage thread execution state.
+2. The execution command is automatically adjusted for Windows and Unix environments.
+3. Temporary files are automatically removed after execution.
+
+### Benefits
+
+- Allows long-running tasks to execute in the background.
+- Prevents blocking the main application execution.
+- Easy to integrate with existing code.
+
+
+
+
 # Documentação do Framework PHP Origins
+
+## Índice
+
+- [Introdução](#introdução)
+- [Instalação](#instalação)
+- [Principais Requisitos](#principais-requisitos)
+- [Conceitos Principais](#conceitos-principais)
+- [Uso Básico](#uso-básico)
+- [Middleware](#middleware)
+  - [Exemplo](#exemplo)
+  - [Prioridade de Middleware](#prioridade-de-middleware)
+- [Configuração Inicial](#configuração-inicial)
+- [Controller Advice](#controller-advice)
+  - [Exemplo](#exemplo-1)
+- [Log](#log)
+  - [Exemplo de Uso](#exemplo-de-uso)
+- [Renderização de Views](#renderização-de-views)
+- [Path Variables](#path-variables)
+  - [Exemplo](#exemplo-2)
+- [Exemplo de Código Controller](#exemplo-de-código-controller)
+- [Personalizando a Configuração (Opcional)](#personalizando-a-configuração-opcional)
+- [Threads com Classe `Thread`](#threads-com-classe-thread)
+  - [Implementação da Interface `Runnable`](#implementação-da-interface-runnable)
+  - [Utilização da Classe `Thread`](#utilização-da-classe-thread)
+  - [Métodos Disponíveis na Classe `Thread`](#métodos-disponíveis-na-classe-thread)
+  - [Detalhes Técnicos](#detalhes-técnicos)
+  - [Benefícios](#benefícios)
 
 ## Introdução
 
@@ -71,9 +463,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [L]
 
-
 ```
-
 
 ### Exemplo
 
@@ -86,7 +476,7 @@ final class IpFilter extends Middleware
     public function onPerrequest(Request $req): void
     {
         $caminho = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $metodo = $_SERVER['REQUEST_METHOD']; 
+        $metodo = $_SERVER['REQUEST_METHOD'];
 
         Log::info("$caminho: $metodo", "logs/requests.log");
 
@@ -118,13 +508,11 @@ final class LowPriorityFilter extends Middleware
 }
 ```
 
-
 ## Controller Advice
 
 A funcionalidade de Controller Advice permite capturar e tratar exceções de forma centralizada, promovendo maior organização do código.
 
 Para usar, extenda a classe `ControllerAdvice` e sobrescreva o método `onError`. Você pode implementar tratamentos específicos para diferentes tipos de exceções.
-
 
 ### Exemplo
 
@@ -168,7 +556,6 @@ Log::error("Erro inesperado ao processar requisição", "errors.log");
 
 O framework permite renderizar páginas dinâmicas com dados. Use o método `renderPage` para passar um modelo de dados a uma view.
 
-
 ```php
 // no controlador
 renderPage("index.php", ["number" => rand()]);
@@ -188,8 +575,6 @@ Os endpoints podem conter variáveis de path, como `{id}`. Use o método `getPat
 $variaveis = $this->getPathVar();
 $id = $variaveis['id'] ?? null;
 ```
-
-
 
 ## Exemplo de Código Controller
 
@@ -275,6 +660,7 @@ Se você precisar personalizar a configuração do framework, pode extender a cl
 
 ?>
 ```
+
 ## Threads com Classe `Thread`
 
 O framework agora oferece suporte à execução de tarefas em threads utilizando a classe `Thread`. Essa funcionalidade é útil para executar tarefas demoradas em segundo plano sem bloquear a execução principal do aplicativo.
@@ -335,3 +721,4 @@ echo "Tarefa concluída!\n";
 - Permite executar tarefas demoradas em segundo plano.
 - Evita bloqueios na execução principal do aplicativo.
 - Simples de integrar ao código existente.
+
