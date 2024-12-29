@@ -185,7 +185,20 @@
         }
 
         private function containsClassView($directory) {
-            return preg_match('/\bviews?\b/', $directory);
+            $pos = strpos($directory, "thread_task") !== false;
+
+            if(Origin::$runBytask){
+                $task = strpos($directory, "index.php") !== false;
+                if($task){
+                    return true;
+                }
+            }
+
+            if ($pos){
+                return true;
+            }
+
+            return (preg_match('/\b(views?)\b/', $directory));
         }
 
         private function getCache(){
@@ -216,6 +229,7 @@
             $_SESSION["origins.initializers"] = $initializers;
             $_SESSION["origins.middlewares"] = $middlewares;
             $_SESSION["origins.controllerAdvice"] = $controllerAdvice;
+            $_SESSION["origins.files"] = $this->loadedFiles;
             $_SESSION["origins.loaders"] = [
                 "dependencys" => $dependecies,
                 "controllers" => $controllers,

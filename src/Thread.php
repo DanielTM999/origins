@@ -2,11 +2,9 @@
 
     namespace Daniel\Origins;
 
-    use ReflectionClass;
-
-    class Runnable
+    interface Runnable
     {
-        public function run(){}
+        public function run();
     }
 
 
@@ -14,47 +12,63 @@
     {
 
         private string $statusFile;
-        private string $tempScriptFile;
 
         public function __construct(private Runnable $runnable){
             $this->runnable = $runnable;
             $this->statusFile = sys_get_temp_dir() . '/thread_' . uniqid() . '.status';
-            $this->tempScriptFile = sys_get_temp_dir() . '/thread_' . uniqid() . '.php';
         }
 
         public function start(){
-            $reflection = new ReflectionClass($this->runnable);
-            $reflectionRunnable = new ReflectionClass(Runnable::class);
-            $filePath = $reflection->getFileName();
-            $filePathRunnable = $reflectionRunnable->getFileName();
-            $filePathRunnableModified = str_replace('\\', '/', $filePathRunnable);
+            $envPath = $_ENV["base.dir"];
+            $serializableClass = serialize($this->runnable);
+            $fileName = "$envPath/thread_task_".uniqid().".php";
 
-            $tempScriptFile = sys_get_temp_dir() . '/temp_script_' . uniqid() . '.php';                     
-            $content = file_get_contents($filePath);
+            $contentThreadAction = '<?php'."\n";
+            $contentThreadAction .= 'session_start();'."\n";
+            $contentThreadAction .= 'require "./vendor/autoload.php";'."\n";
+            $contentThreadAction .= 'use Daniel\Origins\Origin;'."\n";
+            $contentThreadAction .= 'try {'."\n";
+            $contentThreadAction .= '$app = Origin::initialize(true);'."\n";
+            $contentThreadAction .= '$serializableClass = unserialize('."'$serializableClass');\n";
+            $contentThreadAction .= '$serializableClass->run();'."\n";
+            $contentThreadAction .= '} catch (Exception $e) {'."\n";
+            $contentThreadAction .= '}'."\n";
+            $contentThreadAction .= 'unlink(__FILE__);'."\n";
+            $contentThreadAction .= 'echo "thread_task_status: done";'."\n";
+            $contentThreadAction .= '?>';
 
-            $contentWithoutTags = preg_replace('/<\?php|\?>/', '', $content);
-            $includes = [
-                'include "' . $filePathRunnableModified . '";',
-            ];
-            $contentWithIncludes = implode("\n", $includes) . "\n" . $contentWithoutTags;
-            $instance = '$run = new '.$reflection->getName()."();\n".'$run->run();';
-            $finalContent = "<?php\n" . $contentWithIncludes . "\n" . $instance ."\n?>";
+            file_put_contents($fileName, $contentThreadAction);
 
-            file_put_contents($tempScriptFile, $finalContent);
-
-            $status = $this->statusFile; 
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                $command = "start /B php $tempScriptFile > $status 2>&1";
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            $status = $this->statusFile;
+            if ($isWindows) {
+                $command = "start /B php $fileName > $status 2>&1";
             } else {
-                $command = "nohup php $tempScriptFile >> \"$status\" 2>&1 &";
+                $command = "nohup php $fileName >> \"$status\" 2>&1 &";
             }
 
-            pclose(popen($command, 'r'));
+            $finalCommand = sprintf(
+                '(cd %s && %s)', 
+                escapeshellarg($envPath), 
+                $command
+            );
+
+            pclose(popen($finalCommand, 'r'));
         }
 
         public function isFinished(): bool
         {
-            return file_exists($this->statusFile);
+            $exists = file_exists($this->statusFile);
+            if($exists){
+                $content = file_get_contents($this->statusFile);
+                if (strpos($content, 'thread_task_status: done') !== false) {
+                    return true; 
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
         }
 
         public function waitUntilFinished(): void
@@ -62,11 +76,6 @@
             while (!$this->isFinished()) {
                 usleep(100000); 
             }
-        }
-
-        private function escapePath(string $path): string
-        {
-            return str_replace("'", "\\'", $path);
         }
 
     }
