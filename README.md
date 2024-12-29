@@ -275,3 +275,63 @@ Se você precisar personalizar a configuração do framework, pode extender a cl
 
 ?>
 ```
+## Threads com Classe `Thread`
+
+O framework agora oferece suporte à execução de tarefas em threads utilizando a classe `Thread`. Essa funcionalidade é útil para executar tarefas demoradas em segundo plano sem bloquear a execução principal do aplicativo.
+
+### Implementação da Interface `Runnable`
+
+Para utilizar a classe `Thread`, você deve implementar a interface `Runnable` e definir o método `run`, que conterá a lógica da tarefa.
+
+```php
+namespace Daniel\Origins;
+
+interface Runnable
+{
+    public function run();
+}
+```
+
+### Utilização da Classe `Thread`
+
+A classe `Thread` permite criar e gerenciar threads de forma simples. Veja um exemplo de uso:
+
+```php
+namespace Daniel\Origins;
+
+final class ExampleTask implements Runnable
+{
+    public function run()
+    {
+        // Lógica da tarefa a ser executada em segundo plano
+        echo "Executando tarefa em thread...\n";
+    }
+}
+
+$runnable = new ExampleTask();
+$thread = new Thread($runnable);
+$thread->start();
+
+// Aguarda até que a tarefa seja concluída
+$thread->waitUntilFinished();
+
+echo "Tarefa concluída!\n";
+```
+
+### Métodos Disponíveis na Classe `Thread`
+
+- **`start()`**: Inicia a execução da thread.
+- **`isFinished(): bool`**: Verifica se a tarefa foi concluída.
+- **`waitUntilFinished(): void`**: Bloqueia a execução até que a tarefa seja concluída.
+
+### Detalhes Técnicos
+
+1. A classe `Thread` utiliza arquivos temporários para gerenciar o estado de execução das threads.
+2. O comando de execução é ajustado automaticamente para ambientes Windows e Unix.
+3. Ao finalizar a execução, os arquivos temporários são removidos automaticamente.
+
+### Benefícios
+
+- Permite executar tarefas demoradas em segundo plano.
+- Evita bloqueios na execução principal do aplicativo.
+- Simples de integrar ao código existente.

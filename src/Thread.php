@@ -12,6 +12,7 @@
     {
 
         private string $statusFile;
+        private bool $isFinished;
 
         public function __construct(private Runnable $runnable){
             $this->runnable = $runnable;
@@ -58,10 +59,15 @@
 
         public function isFinished(): bool
         {
+            if($this->isFinished){
+                return $this->isFinished;
+            }
             $exists = file_exists($this->statusFile);
             if($exists){
                 $content = file_get_contents($this->statusFile);
                 if (strpos($content, 'thread_task_status: done') !== false) {
+                    $this->isFinished = true;
+                    unlink($this->statusFile);
                     return true; 
                 }else{
                     return false;
