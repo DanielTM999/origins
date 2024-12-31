@@ -20,16 +20,36 @@
                 $loaders = $_SESSION["origins.loaders"];    
                 $controllers = $loaders["controllers"] ?? [];
                 $middlewares = $loaders["middlewares"] ?? [];
+                $routes = $loaders["routes"] ?? [];
                 $controllerAdvice = $loaders["controllerAdvice"] ?? null;
 
                 if(isset($controllerAdvice)){
                     $reflect = new ReflectionClass($controllerAdvice);
                     self::$controllerErrorReflect = $reflect;
                 }
-                foreach($controllers as $controller){
-                    $reflect = new ReflectionClass($controller);
-                    $this->mappingControllerClass($reflect);
+
+                if(empty($routes)){
+                    foreach($controllers as $controller){
+                        $reflect = new ReflectionClass($controller);
+                        $this->mappingControllerClass($reflect);
+                    }
+                    $this->addRoutesToCash();
+                }else{
+                    $reflectMap = [];
+                    foreach($routes as $route){
+                        $className = $route["class"];
+                        if (isset($reflectMap[$className])) {
+                            $reflectController = $reflectMap[$className];
+                        } else {
+                            $reflectController = new ReflectionClass($className);
+                            $reflectMap[$className] = $reflectController;
+                        }   
+                        $reflectMethod = $reflectController->getMethod($route["action"]["name"]);
+                        self::$routes[] = new Router($route["path"], $route["httpMethod"], $reflectController, $reflectMethod);
+                    }
+                    unset($reflectMap);
                 }
+
                 foreach($middlewares as $middleware){
                     $reflect = new ReflectionClass($middleware);
                     self::$middlewares[] = $reflect;
@@ -500,6 +520,39 @@
                 }   
             }
         }
+
+        private function addRoutesToCash(){
+            $settings = $this->getCache();
+            $endpoints = [];
+            foreach (self::$routes as $key => $value) {
+                $endpoints[] = [
+                    'path' => $value->path,
+                    'httpMethod' => $value->method,
+                    'class' => $value->class->getName(),
+                    'action' => $value->methodClass,
+                ];
+            }
+            $settings["configurations"]["routes"] = $endpoints;
+            $jsonData = json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents(ServerAutoload::$metaDadosPath, $jsonData);
+        }
+
+        private function getCache(){
+            $filePath = ServerAutoload::$metaDadosPath;
+            if (!file_exists($filePath)) {
+                return null;
+            }
+            $jsonData = file_get_contents($filePath);
+            if ($jsonData === false) {
+                return null;
+            }
+            $data = json_decode($jsonData, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return null;
+            }
+            return $data;
+        }
+
     }
 
  

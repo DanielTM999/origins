@@ -4,7 +4,7 @@
     use ReflectionClass;
 
     final class ServerAutoload extends Autoloader{
-        private static string $metaDadosPath = "./origins.json";
+        public static string $metaDadosPath = "./origins.json";
         private array $loadedFiles = [];
 
         #[Override]
@@ -129,6 +129,7 @@
                         "controllers" => $controllers,
                         "dependecies" => $dependecies,
                         "controllerAdvice" => $controllerAdvice,
+                        "routes" => []
                     ],
                 ]);
             }
@@ -153,17 +154,19 @@
                 $controllers = null;
                 $middlewares = null;
                 $controllerAdvice = null;
+                $routes = [];
 
                 $configurations = $cache["configurations"] ?? null;
                 if(isset($configurations)){
-                    $intializers = $configurations["initializers"];
-                    $dependecies = $configurations["dependecies"];
-                    $controllers = $configurations["controllers"];
-                    $middlewares = $configurations["middlewares"];
-                    $controllerAdvice = $configurations["controllerAdvice"];
+                    $intializers = $configurations["initializers"] ?? null;
+                    $dependecies = $configurations["dependecies"] ?? null;
+                    $controllers = $configurations["controllers"] ?? null;
+                    $middlewares = $configurations["middlewares"] ?? null;
+                    $controllerAdvice = $configurations["controllerAdvice"] ?? null;
+                    $routes = $configurations["routes"] ?? [];
                 }
 
-                $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice);
+                $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice, $routes);
             }else{
                 $this->loadElements();
             }
@@ -222,7 +225,7 @@
             file_put_contents(self::$metaDadosPath, $jsonData);
         }
 
-        private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice){
+        private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice, $routes = []){
             $controllerAdvice = ($controllerAdvice === "") ? null : $controllerAdvice;
             $_SESSION["origins.dependencys"] = $dependecies;
             $_SESSION["origins.controllers"] = $controllers;
@@ -236,6 +239,7 @@
                 "initializers" => $initializers,
                 "middlewares" => $middlewares,
                 "controllerAdvice" => $controllerAdvice,
+                "routes" => $routes
             ];
         }
     } 
