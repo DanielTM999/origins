@@ -10,14 +10,15 @@
 
     final class Thread
     {
-
+        private string $idThread; 
         private string $statusFile;
         private bool $isFinished;
         private string $resultContent;
 
         public function __construct(private Runnable $runnable){
             $this->runnable = $runnable;
-            $this->statusFile = sys_get_temp_dir() . '/thread_' . uniqid() . '.status';
+            $this->idThread = uniqid();
+            $this->statusFile = sys_get_temp_dir() . '/thread_' . $this->idThread . '.status';
         }
 
         public function start(){
@@ -36,7 +37,7 @@
             $contentThreadAction .= '} catch (Exception $e) {'."\n";
             $contentThreadAction .= '}'."\n";
             $contentThreadAction .= 'unlink(__FILE__);'."\n";
-            $contentThreadAction .= 'echo "thread_task_status: done";'."\n";
+            $contentThreadAction .= 'echo "thread_task_status: done_'.$this->idThread.'";'."\n";
             $contentThreadAction .= '?>';
 
             file_put_contents($fileName, $contentThreadAction);
@@ -67,7 +68,7 @@
             if($exists){
                 $content = file_get_contents($this->statusFile);
                 $this->resultContent = $content;
-                if (strpos($content, 'thread_task_status: done') !== false) {
+                if (strpos($content, 'thread_task_status: done_'.$this->idThread) !== false) {
                     $this->isFinished = true;
                     unlink($this->statusFile);
                     return true; 

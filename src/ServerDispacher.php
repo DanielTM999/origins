@@ -103,9 +103,28 @@
         }
 
         #[Override]
-        public function ShowEndPoints(): void
+        public function ShowEndPoints($writeAsJson = false): void
         {
             $cont = count(self::$routes);
+            if($writeAsJson){
+               
+                $endpoints = [];
+                foreach (self::$routes as $key => $value) {
+                    $endpoints[] = [
+                        'rota' => $value->path,
+                        'metodo' => $value->method,
+                        'classe' => $value->class->getName(),
+                        'action' => $value->methodClass,
+                    ];
+                }
+
+                $localPath = $_ENV["base.dir"] . "/endpoitsDoc.json";
+
+                file_put_contents($localPath, json_encode($endpoints, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                
+                return;
+            }
+           
             echo "Endpoints encontrados: $cont <br>";
             foreach (self::$routes as $key => $value) {
                 $rota = $value->path;
