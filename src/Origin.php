@@ -30,8 +30,8 @@
 
         }
 
-        public function showMappedendPoints(){
-            $this->dispacher->ShowEndPoints();
+        public function showMappedendPoints($writeAsJson = false){
+            $this->dispacher->ShowEndPoints($writeAsJson);
         }
 
         public function run(){
