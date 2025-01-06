@@ -43,13 +43,12 @@
     class Response{
 
         public function renderPage(string $page, $viewModel = null): void{
-            if($viewModel){
-                $model = new ViewModel($viewModel);
-                unset($model);
+            if ($viewModel !== null) {
+                global $model;
+                $model = $viewModel;
             }
             include_once $page;
         }
-
         public function redirect(string $to): void{
             header("Location: $to");
             exit;
