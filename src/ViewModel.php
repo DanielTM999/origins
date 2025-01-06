@@ -4,15 +4,14 @@
 
     final class ViewModel
     {
-        private static $model;
-        
+        public function __construct($viewModel = null) {
+            $_SESSION["ViewModel.viewModel"] = $viewModel;
+        }  
+
         public static function Model(){
-            return self::$model;
+            return $_SESSION["ViewModel.viewModel"];
         }
 
-        public static function setModel($model){
-            self::$model = $model;
-        }
     }
     
 

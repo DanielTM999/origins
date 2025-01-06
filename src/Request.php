@@ -43,7 +43,10 @@
     class Response{
 
         public function renderPage(string $page, $viewModel = null): void{
-            ViewModel::setModel($viewModel);
+            if($viewModel){
+                $model = new ViewModel($viewModel);
+                unset($model);
+            }
             include_once $page;
         }
 
