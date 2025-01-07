@@ -61,7 +61,7 @@
 
         public function isFinished(): bool
         {
-            if($this->isFinished){
+            if(isset($this->isFinished)){
                 return $this->isFinished;
             }
             $exists = file_exists($this->statusFile);
