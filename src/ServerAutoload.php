@@ -46,6 +46,7 @@
                     if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false || strpos($directory, "danieltm/origins" ) !== false || strpos($directory, "http-security\\vendor") !== false) {
                         $execute = false;
                     }
+
                     if ($item === '.' || $item === '..') {
                         $execute = false;
                     }
@@ -68,7 +69,7 @@
         private function requireOnce($file)
         {      
             try{
-                if (!in_array($file, $this->loadedFiles)) {
+                if (!in_array($file, $this->loadedFiles) && !($file === $_ENV["base.dir"]."\\index.php")) {
                     $this->loadedFiles[] = $file;
                 }
             } catch (\Throwable $th) {
