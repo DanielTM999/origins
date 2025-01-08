@@ -33,7 +33,9 @@
                         $reflect = new ReflectionClass($controller);
                         $this->mappingControllerClass($reflect);
                     }
-                    $this->addRoutesToCash();
+                    if(isset($_ENV["enviroment"]) && $_ENV["enviroment"] === "production"){
+                        $this->addRoutesToCash();
+                    }
                 }else{
                     $reflectMap = [];
                     foreach($routes as $route){
