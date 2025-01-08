@@ -44,8 +44,7 @@
 
         public function renderPage(string $page, $viewModel = null): void{
             if ($viewModel !== null) {
-                global $model;
-                $model = $viewModel;
+                $GLOBALS['model'] = $viewModel;
             }
             include_once $page;
         }
