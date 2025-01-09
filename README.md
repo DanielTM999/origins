@@ -697,7 +697,7 @@ class UserController
     }
 
     #[Get("/")]
-    public function intex(Request $req){
+    public function index(Request $req){
         $headers = $req->getHeaders();
         $body = $req->getBody();
     }   
