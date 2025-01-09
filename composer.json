@@ -15,6 +15,6 @@
     },
     "license": "MIT",
     "scripts": {
-        "run-script": "php src/template.php"
+        "create-template": "php src/.origin_scripts/template.php"
     }
 }
