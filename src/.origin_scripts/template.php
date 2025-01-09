@@ -58,25 +58,5 @@
         return $dirBase;
     }
     
-    // require "./vendor/autoload.php";
-
-    // use Daniel\Origins\Controller;
-    // use Daniel\Origins\ControllerAdvice;
-    // use Daniel\Origins\Get;
-    // use Daniel\Origins\Origin;
-    // use Daniel\Origins\Request;
-    // use Daniel\Origins\Response;
-
-    // Origin::initialize()->run();
-
-    // #[Controller]
-    // final class indexController
-    // {
-
-    //     #[Get("/")]
-    //     function index(Request $request, Response $response, $teste){
-            
-    //     }
-    // }
 ?>
 
