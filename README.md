@@ -154,6 +154,12 @@ RewriteRule ^(.*)$ index.php [L]
 
 Aspect-Oriented Programming allows the implementation of cross-cutting concerns such as logging and security in a modular and reusable way.
 
+### Note
+
+**Aspect-Oriented Programming (AOP)** is an advanced framework feature primarily used to handle cross-cutting concerns, such as logging and security. **While AOP does not directly modify controllers**, it can alter the behavior of methods, their arguments, and even their return values. Since AOP manipulates memory references rather than clones, it can directly impact the state of objects, making it a critical area. Due to this potential impact, it is essential to handle it carefully, as unexpected changes in the execution flow can affect other parts of the system that rely on these references.
+
+
+
 ### Aspect Class
 
 The `Aspect` class provides a way to execute logic before a controller method is executed. This can be used for cross-cutting concerns like logging, security, and data transformation.
@@ -562,6 +568,10 @@ final class LowPriorityFilter extends Middleware
 ## Programação Orientada a Aspectos (AOP)
 
 A Programação Orientada a Aspectos permite a implementação de preocupações transversais, como logging e segurança, de forma modular e reutilizável.
+
+### Nota
+
+A **Programação Orientada a Aspectos (AOP)** é um recurso avançado do framework, utilizado principalmente para lidar com preocupações transversais, como logging e segurança. **Embora a AOP não modifique diretamente os controladores**, ela pode alterar o comportamento dos métodos, seus argumentos e até o próprio retorno. Como a AOP manipula referências de memória e não clones, ela pode impactar diretamente o estado dos objetos, o que a torna uma área crítica. Devido a esse impacto potencial, é essencial manuseá-la com cuidado, pois alterações inesperadas no fluxo de execução podem afetar outras partes do sistema que dependem dessas referências.
 
 
 ```php
