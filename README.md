@@ -17,6 +17,7 @@
   - [Example](#example)
   - [Middleware Priority](#middleware-priority)
 - [Initial Configuration](#initial-configuration)
+- [Aspect-Oriented Programming (AOP)](#aspect-oriented-programming-aop)
 - [Controller Advice](#controller-advice)
   - [Example](#example-1)
 - [Log](#log)
@@ -72,6 +73,8 @@ The Origins framework is built upon a few core concepts:
 - **Middleware**: Classes that intercept requests before they reach controllers, enabling logic implementation like authentication or logging.
 
 - **Controller Advice**: Enables centralized and customized error handling for exceptions during request execution.
+
+- **Aspect-Oriented Programming (AOP)**: Uses aspects to implement cross-cutting concerns such as logging and security.
 
 - **Log**: An integrated system for logging events and errors, used for monitoring and debugging.
 
@@ -146,6 +149,51 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [L]
 ```
+
+## Aspect-Oriented Programming (AOP)
+
+Aspect-Oriented Programming allows the implementation of cross-cutting concerns such as logging and security in a modular and reusable way.
+
+### Aspect Class
+
+The `Aspect` class provides a way to execute logic before a controller method is executed. This can be used for cross-cutting concerns like logging, security, and data transformation.
+
+```php
+<?php
+
+namespace Daniel\Origins;
+
+use ReflectionMethod;
+
+abstract class Aspect
+{
+    public function __construct() {}
+    abstract public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs);
+}
+?>
+```
+
+To create a custom aspect, extend the `Aspect` class and implement the `aspectBefore` method:
+
+```php
+<?php
+
+namespace App\Aspects;
+
+use Daniel\Origins\Aspect;
+use ReflectionMethod;
+
+class LoggingAspect extends Aspect
+{
+    public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs)
+    {
+        error_log("Executing method: " . $method->getName());
+    }
+}
+?>
+```
+
+This ensures that custom logic runs before the execution of controller methods, allowing for greater modularity and maintainability.
 
 ## Controller Advice
 
@@ -376,6 +424,7 @@ echo "Task completed!\n";
   - [Exemplo](#exemplo)
   - [Prioridade de Middleware](#prioridade-de-middleware)
 - [Configuração Inicial](#configuração-inicial)
+- [Programação Orientada a Aspectos (AOP)](#programação-orientada-a-aspectos-aop)
 - [Controller Advice](#controller-advice)
   - [Exemplo](#exemplo-1)
 - [Log](#log)
@@ -431,6 +480,8 @@ O framework Origins é construído com base em alguns conceitos fundamentais:
 - **Middleware**: Classes que interceptam solicitações antes de alcançarem os controllers, permitindo a implementação de lógicas específicas como autenticação ou logging.
 
 - **Controller Advice**: Permite um tratamento centralizado e personalizado de exceções e erros que ocorrem durante a execução das requisições.
+
+- **Programação Orientada a Aspectos (AOP)**: Usa aspectos para implementar preocupações transversais, como logging e segurança.
 
 - **Log**: Sistema integrado para registro de eventos e erros, utilizado para monitoramento e depuração.
 
@@ -507,6 +558,51 @@ final class LowPriorityFilter extends Middleware
     // Lógica do Middleware
 }
 ```
+
+## Programação Orientada a Aspectos (AOP)
+
+A Programação Orientada a Aspectos permite a implementação de preocupações transversais, como logging e segurança, de forma modular e reutilizável.
+
+
+```php
+<?php
+
+namespace Daniel\Origins;
+
+use ReflectionMethod;
+
+abstract class Aspect
+{
+    public function __construct() {}
+    abstract public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs);
+}
+?>
+```
+
+Para criar um aspecto personalizado, estenda a classe `Aspect` e implemente o método `aspectBefore`:
+
+```php
+<?php
+
+namespace App\Aspects;
+
+use Daniel\Origins\Aspect;
+use ReflectionMethod;
+
+class LoggingAspect extends Aspect
+{
+    public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs)
+    {
+        error_log("Executando método: " . $method->getName());
+    }
+}
+?>
+```
+
+Isso garante que a lógica personalizada seja executada antes da execução dos métodos dos controllers, proporcionando maior modularidade e manutenibilidade.
+
+---
+
 
 ## Controller Advice
 
