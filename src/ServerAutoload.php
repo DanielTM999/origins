@@ -91,6 +91,7 @@
             $controllers = [];
             $dependecies = [];
             $middlewares = [];
+            $aspects = [];
             $controllerAdvice = "";
             foreach ($classes as $class){
                 $reflect = new ReflectionClass($class);
@@ -107,6 +108,8 @@
                         $controllerAdvice = $class;
                     }else if($parentClassName === Middleware::class){
                         $middlewares[] = $class;
+                    }else if($parentClassName === Aspect::class){
+                        $aspects[] = $class;
                     }
                 }
 
@@ -127,6 +130,7 @@
                     "configurations" => [
                         "initializers" => $configurations,
                         "middlewares" => $middlewares,
+                        "aspects" => $aspects,
                         "controllers" => $controllers,
                         "dependecies" => $dependecies,
                         "controllerAdvice" => $controllerAdvice,
@@ -134,7 +138,7 @@
                     ],
                 ]);
             }
-            $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice);
+            $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice, $aspects, []);
         }
 
         private function loadElementsByCache($cache){
@@ -154,6 +158,7 @@
                 $dependecies = null;
                 $controllers = null;
                 $middlewares = null;
+                $aspects = null;
                 $controllerAdvice = null;
                 $routes = [];
 
@@ -163,11 +168,12 @@
                     $dependecies = $configurations["dependecies"] ?? null;
                     $controllers = $configurations["controllers"] ?? null;
                     $middlewares = $configurations["middlewares"] ?? null;
+                    $aspects = $configurations["aspects"] ?? null;
                     $controllerAdvice = $configurations["controllerAdvice"] ?? null;
                     $routes = $configurations["routes"] ?? [];
                 }
 
-                $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice, $routes);
+                $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice, $aspects, $routes);
             }else{
                 $this->loadElements();
             }
@@ -226,7 +232,7 @@
             file_put_contents(self::$metaDadosPath, $jsonData);
         }
 
-        private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice, $routes = []){
+        private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice, $aspects, $routes = []){
             $controllerAdvice = ($controllerAdvice === "") ? null : $controllerAdvice;
             $_SESSION["origins.dependencys"] = $dependecies;
             $_SESSION["origins.controllers"] = $controllers;
@@ -234,12 +240,14 @@
             $_SESSION["origins.middlewares"] = $middlewares;
             $_SESSION["origins.controllerAdvice"] = $controllerAdvice;
             $_SESSION["origins.files"] = $this->loadedFiles;
+            $_SESSION["origins.aspects"] = $aspects;
             $_SESSION["origins.loaders"] = [
                 "dependencys" => $dependecies,
                 "controllers" => $controllers,
                 "initializers" => $initializers,
                 "middlewares" => $middlewares,
                 "controllerAdvice" => $controllerAdvice,
+                "aspects" => $aspects,
                 "routes" => $routes
             ];
         }

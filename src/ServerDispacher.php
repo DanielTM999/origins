@@ -11,6 +11,7 @@
     class ServerDispacher extends Dispacher{
         public static $routes = [];
         private static $middlewares = [];
+        private static $aspects = [];
         private static ReflectionClass $controllerErrorReflect;
         private static ControllerAdvice $controllerError;
 
@@ -20,6 +21,7 @@
                 $loaders = $_SESSION["origins.loaders"];    
                 $controllers = $loaders["controllers"] ?? [];
                 $middlewares = $loaders["middlewares"] ?? [];
+                $aspects = $loaders["aspects"] ?? [];
                 $routes = $loaders["routes"] ?? [];
                 $controllerAdvice = $loaders["controllerAdvice"] ?? null;
 
@@ -55,6 +57,11 @@
                 foreach($middlewares as $middleware){
                     $reflect = new ReflectionClass($middleware);
                     self::$middlewares[] = $reflect;
+                }
+
+                foreach($aspects as $aspect){
+                    $reflect = new ReflectionClass($aspect);
+                    self::$aspects[] = $reflect;
                 }
 
             }else{
@@ -108,13 +115,18 @@
                     $method = $route->methodClass;
 
                     try {
+                        $methodArgs = $this->getMainMethodExecuteArgs($method, $req);
                         foreach(self::$middlewares as $md){
                             $instanceMiddleware = $this->getInstanceBy($md, $Dmanager);
                             $this->ExecuteMiddleware($instanceMiddleware, $req);
                         }
-                        $this->ExecuteMethod($method, $instance, $req);
+                        foreach(self::$aspects as $aspect){
+                            $instanceAspect = $this->getInstanceBy($aspect, $Dmanager);
+                            $this->executeAspect($instanceAspect, $method, $methodArgs, $instance);
+                        }
+                        $this->ExecuteMethod($method, $instance, $methodArgs);
                     } catch (\Throwable $th) {
-                        $this->executeControllerAdviceException($th, $Dmanager);
+                        $this->executeControllerAdviceException($route->class, $th, $Dmanager);
                     }
                     return;
                 }
@@ -390,44 +402,61 @@
             return null;
         }
 
-        private function ExecuteMethod(ReflectionMethod $method, $entity, Request $req)
-        {
-            
+        private function ExecuteMethod(ReflectionMethod $method, $entity, array &$args)
+        {   
             try {
                 $parameters = $method->getParameters();
                 if ($parameters !== null) {
-                    $args = [];
-                    foreach ($parameters as $param) {
-                        $paramType = $param->getType()->getName();
-                        
-                        switch ($paramType) {
-                            case Request::class:
-                                $args[] = $req;
-                                break;
-                            case Response::class:
-                                $args[] = new Response();
-                                break;
-                            default:
-                                $args[] = null;
-                                break;
-                        }
-                    }
-                    try {
-                        $result = $method->invokeArgs($entity, $args);
-                        $this->echoResult($result);
-                    } catch (\Throwable $th) {
-                        $reflect = new ReflectionClass($entity);
-                        $name = $reflect->getName();
-                        $error = $th->getMessage();
-                        echo "<b>Error:</b> [$name] --> $error";
-                    }
+                    $result = $method->invokeArgs($entity, $args);
+                    $this->echoResult($result);
                 } else {
                     $result = $method->invoke($entity);
                     $this->echoResult($result);
                 }
             } catch (Exception $e) {
-                var_dump($e->getMessage());
+                throw $e;
             }
+        }
+
+        private function executeAspect(Aspect $aspect, ReflectionMethod &$method, array &$args, object &$controllerEntity){
+            try {
+                $aspect->aspectBefore($controllerEntity, $method, $args);
+            } catch (Throwable $th) {
+                throw $th;
+            }
+        }
+
+        private function getMainMethodExecuteArgs(ReflectionMethod $method, Request $req): array{
+            $args = [];
+
+            try{
+                $parameters = $method->getParameters();
+                if ($parameters !== null){
+                    foreach ($parameters as $param){
+                        $paramType = $param->getType();
+                        if(isset($paramType)){
+                            $paramNameTypeName = $paramType->getName();
+                            switch ($paramNameTypeName) {
+                                case Request::class:
+                                    $args[] = $req;
+                                    break;
+                                case Response::class:
+                                    $args[] = new Response();
+                                    break;
+                                default:
+                                    $args[] = null;
+                                    break;
+                            }
+                        }else{
+                            $args[] = null; 
+                        }
+                    }
+                }
+            }catch(Throwable $e){
+                throw $e;
+            }
+
+            return $args;
         }
 
         private function ExecuteMiddleware(Middleware $entity, Request $req){
@@ -442,12 +471,13 @@
             }
         }
 
-        private function executeControllerAdviceException(Throwable $throwable, DependencyManager $Dmanager){
+        private function executeControllerAdviceException($entityName, Throwable $throwable, DependencyManager $Dmanager){
             if(isset(self::$controllerErrorReflect)){
                 self::$controllerError = $this->getInstanceBy(self::$controllerErrorReflect, $Dmanager);
                 self::$controllerError->onError($throwable);
             }else{
-                throw $throwable;  
+                $error = $throwable->getMessage();
+                echo "<b>Error:</b> [$entityName] --> $error";
             }
         }
 
