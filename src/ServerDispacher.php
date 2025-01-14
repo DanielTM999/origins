@@ -94,7 +94,7 @@
 
         #[Override]
         public function dispach(DependencyManager $Dmanager): void{
-            $hostClient = $_SERVER['HTTP_HOST'];
+            $hostClient = $_SERVER['REMOTE_ADDR'];
             $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
             $requestMethod = $_SERVER['REQUEST_METHOD'];
             $headers = getallheaders();
