@@ -94,6 +94,7 @@
 
         #[Override]
         public function dispach(DependencyManager $Dmanager): void{
+            $hostClient = $_SERVER['HTTP_HOST'];
             $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
             $requestMethod = $_SERVER['REQUEST_METHOD'];
             $headers = getallheaders();
@@ -118,8 +119,8 @@
                     }
 
                     $req = ($jsonData !== null)
-                        ? new Request($headers, $jsonData, $pathVariables)
-                        : new Request($headers, ($requestMethod === "GET" ? $_GET : $_POST), $pathVariables);
+                        ? new Request($headers, $jsonData, $pathVariables, $requestPath, $hostClient)
+                        : new Request($headers, ($requestMethod === "GET" ? $_GET : $_POST), $pathVariables, $requestPath, $hostClient);
 
 
                     $instance = $this->getInstanceBy($route->class, $Dmanager);
