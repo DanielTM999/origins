@@ -219,12 +219,14 @@ use ReflectionClass;
                 $type = $var->getType() ?? "";
                 $name = $type->getName() ?? "";
 
-                if($name === "PDO"){
-                    $var->setAccessible(false);
-                }else{
-                    $object = $this->getDependency($var);
-                    $var->setAccessible(true);
-                    $var->setValue($instance, $object);
+                if ($this->isAnnotetionPresent($var, Inject::class)){
+                    if($name === "PDO"){
+                        $var->setAccessible(false);
+                    }else{
+                        $object = $this->getDependency($var);
+                        $var->setAccessible(true);
+                        $var->setValue($instance, $object);
+                    }
                 }
             }
             return $instance;
