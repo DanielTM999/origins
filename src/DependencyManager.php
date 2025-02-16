@@ -226,10 +226,6 @@ use ReflectionClass;
                     $var->setAccessible(true);
                     $var->setValue($instance, $object);
                 }
-
-                $object = $this->getDependency($var);      
-                $var->setAccessible(true);
-                $var->setValue($instance, $object);
             }
             return $instance;
         }
