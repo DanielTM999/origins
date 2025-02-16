@@ -230,6 +230,12 @@ use ReflectionClass;
                         }
                     }
                 
+                }else{
+                    if ($this->isAnnotetionPresent($var, Inject::class)){
+                        $object = $this->getDependency($var);
+                        $var->setAccessible(true);
+                        $var->setValue($instance, $object);
+                    }
                 }
             }
             return $instance;
