@@ -1,6 +1,8 @@
 <?php
     namespace Daniel\Origins;
-    use ReflectionClass;
+
+use ReflectionAttribute;
+use ReflectionClass;
     use ReflectionProperty;
 
     class DependencyManager{ 
@@ -107,22 +109,10 @@
                 $atrbuteData = $reflect->getAttributes(Dependency::class);
                 $singleton = $this->isSingleton($atrbuteData);
                 if($singleton){
-                    $instance = $reflect->newInstanceWithoutConstructor();
-                    foreach($vars as $var){
-                        $object = $this->getDependency($var);      
-                        $var->setAccessible(true);
-                        $var->setValue($instance, $object);
-                    }
-                    return $instance;
+                    return $this->getIntanceInternal($reflect, $vars);
                 }else{
                     $activator = function() use ($reflect, $vars){
-                        $instance = $reflect->newInstanceWithoutConstructor();
-                        foreach($vars as $var){
-                            $object = $this->getDependency($var);      
-                            $var->setAccessible(true);
-                            $var->setValue($instance, $object);
-                        }
-                        return $instance;
+                        return $this->getIntanceInternal($reflect, $vars);
                     };
                     return $activator;
                 }
@@ -223,5 +213,25 @@
         }
 
 
+        private function getIntanceInternal(ReflectionClass $reflect, $vars){
+            $instance = $reflect->newInstanceWithoutConstructor();
+            foreach($vars as $var){
+                $type = $var->getType() ?? "";
+                $name = $type->getName() ?? "";
+
+                if($name === "PDO"){
+                    $var->setAccessible(false);
+                }else{
+                    $object = $this->getDependency($var);
+                    $var->setAccessible(true);
+                    $var->setValue($instance, $object);
+                }
+
+                $object = $this->getDependency($var);      
+                $var->setAccessible(true);
+                $var->setValue($instance, $object);
+            }
+            return $instance;
+        }
     }
 ?>
