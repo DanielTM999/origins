@@ -196,12 +196,15 @@
 
         private function containsClassView($directory) {
             $pos = strpos($directory, "thread_task") !== false;
+            $posCLI = strpos($directory, "Origins_") !== false;
 
             if(Origin::$runBytask){
                 $task = strpos($directory, "index.php") !== false;
                 if($task){
                     return true;
                 }
+            }else if($posCLI){
+                return true;
             }
 
             if ($pos){
