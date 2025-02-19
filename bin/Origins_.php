@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-    require __DIR__ . "/../../vendor/autoload.php";
+    require __DIR__ . "../vendor/autoload.php";
 
     if ($argc < 2) {
         echo "Uso: php origins <comando>\n";
