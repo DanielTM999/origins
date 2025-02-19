@@ -26,6 +26,9 @@
             $this->autoload->load();
             $this->dispacher->map();
             $this->Dmanager->start();
+
+            $this->Dmanager->addDependency(Dispacher::class, $this->dispacher);
+
             $this->serverConfg->ConfigOnInit();
 
         }

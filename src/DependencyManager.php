@@ -1,8 +1,7 @@
 <?php
     namespace Daniel\Origins;
 
-use ReflectionAttribute;
-use ReflectionClass;
+    use ReflectionClass;
     use ReflectionProperty;
 
     class DependencyManager{ 
@@ -45,11 +44,11 @@ use ReflectionClass;
 
         }
 
-        public function addDependency(string $dependency, object $object){
+        public function addDependency(string $dependency, object &$object){
             $notDepend = true;
             if(isset(self::$dependencys[$dependency])){
                 self::$dependencys[$dependency] = $object;
-               $notDepend = false;
+                $notDepend = false;
             }
 
             if($notDepend){
@@ -98,13 +97,13 @@ use ReflectionClass;
             }
         } 
 
-        private function getInstanceOrActivator(ReflectionClass $reflect){
+        private function getInstanceOrActivator(ReflectionClass $reflect) : object{
             $vars = $reflect->getProperties();
             $constructor = $reflect->getConstructor();
 
             
             if ($constructor !== null){
-
+                return null;
             }else{
                 $atrbuteData = $reflect->getAttributes(Dependency::class);
                 $singleton = $this->isSingleton($atrbuteData);

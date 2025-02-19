@@ -15,21 +15,7 @@
         private static ReflectionClass $controllerErrorReflect;
         private static ControllerAdvice $controllerError;
 
-        public static function addExternalRoute(Router $route){
-            if(isset($route)){
-                self::$routes[] = $route;
-            }
-        }
-
-        public static function addExternalRouteAtrubutes(string $path, string $httpMethod, ReflectionClass $class, ReflectionMethod $method){
-            if(isset($path) && isset($httpMethod) && isset($class) && isset($method)){
-                if($httpMethod === HttpMethod::GET || $httpMethod === HttpMethod::POST || $httpMethod === HttpMethod::DELETE || $httpMethod === HttpMethod::PUT){
-                    $route = new Router($path, $httpMethod, $class, $method);
-                    self::$routes[] = $route;
-                }
-            }
-        }
-
+        
         #[Override]
         public function map(): void{
             if(isset($_SESSION["origins.loaders"])){
@@ -105,6 +91,23 @@
 
                 return $priorityB <=> $priorityA;
             });
+        }
+
+        #[Override]
+        public function addExternalRoute(Router $route): void{
+            if(isset($route)){
+                self::$routes[] = $route;
+            }
+        }
+
+        #[Override]
+        public function addExternalRouteAtrubutes(string $path, string $httpMethod, ReflectionClass $class, ReflectionMethod $method): void{
+            if(isset($path) && isset($httpMethod) && isset($class) && isset($method)){
+                if($httpMethod === HttpMethod::GET || $httpMethod === HttpMethod::POST || $httpMethod === HttpMethod::DELETE || $httpMethod === HttpMethod::PUT){
+                    $route = new Router($path, $httpMethod, $class, $method);
+                    self::$routes[] = $route;
+                }
+            }
         }
 
         #[Override]
