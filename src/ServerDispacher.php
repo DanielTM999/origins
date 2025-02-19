@@ -132,11 +132,19 @@
                             $instanceMiddleware = $this->getInstanceBy($md, $Dmanager);
                             $this->ExecuteMiddleware($instanceMiddleware, $req);
                         }
+                        $instanceAspectList = [];
+
                         foreach(self::$aspects as $aspect){
                             $instanceAspect = $this->getInstanceBy($aspect, $Dmanager);
-                            $this->executeAspect($instanceAspect, $method, $methodArgs, $instance);
+                            $instanceAspectList[] = &$instanceAspect;
+                            $this->executeAspect($instanceAspect, $method, $methodArgs, $instance, "before");
                         }
+
                         $this->ExecuteMethod($method, $instance, $methodArgs);
+
+                        foreach($instanceAspectList as $instanceAspect){
+                            $this->executeAspect($instanceAspect, $method, $methodArgs, $instance, "after");
+                        }
                     } catch (\Throwable $th) {
                         $this->executeControllerAdviceException($route->class, $th, $Dmanager);
                     }
@@ -430,9 +438,13 @@
             }
         }
 
-        private function executeAspect(Aspect $aspect, ReflectionMethod &$method, array &$args, object &$controllerEntity){
+        private function executeAspect(Aspect $aspect, ReflectionMethod &$method, array &$args, object &$controllerEntity, string $methodType){
             try {
-                $aspect->aspectBefore($controllerEntity, $method, $args);
+                if($methodType === "before"){
+                    $aspect->aspectBefore($controllerEntity, $method, $args);
+                }else if($methodType === "after"){
+                    $aspect->aspectAfter($controllerEntity, $method, $args);
+                }
             } catch (Throwable $th) {
                 throw $th;
             }
