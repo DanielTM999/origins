@@ -14,5 +14,9 @@
         "php": "^8.0"
     },
     "license": "MIT",
-    "bin": ["bin/Origins_.php"]
+    "bin": ["bin/Origins_.php"],
+    "scripts": {
+        "origins": "php bin/Origins_.php"
+    }
+
 }
