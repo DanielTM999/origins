@@ -40,6 +40,8 @@
                             $v = str_replace('/', '\\', $v);
                             if(strpos($directory, $v) !== false){
                                 $execute = false;
+                            }else if(in_array($item, $ignoreList)){
+                                $execute = false;
                             }
                         }
                     }
