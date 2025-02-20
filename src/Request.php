@@ -7,14 +7,16 @@
         private $body;
         private string $path;
         private string $host;
+        private Router $route;
         
-        public function __construct($headers, $body, $pathVar, string $path, string $host)
+        public function __construct($headers, $body, $pathVar, string $path, string $host, Router $route)
         {
             $this->headers = $headers;
             $this->body = $body;
             $this->pathVar = $pathVar;
             $this->path = $path;
             $this->host = $host;
+            $this->route = $route;
         }
 
         public function getHeaders(){
@@ -28,6 +30,10 @@
                 $result = null;
             }
             return $result;
+        }
+
+        public function getRoute(): Router{
+            return $this->route;
         }
 
         public function getBody(){

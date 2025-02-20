@@ -137,8 +137,8 @@
                     }
 
                     $req = ($jsonData !== null)
-                        ? new Request($headers, $jsonData, $pathVariables, $requestPath, $hostClient)
-                        : new Request($headers, ($requestMethod === "GET" ? $_GET : $_POST), $pathVariables, $requestPath, $hostClient);
+                        ? new Request($headers, $jsonData, $pathVariables, $requestPath, $hostClient, $route)
+                        : new Request($headers, ($requestMethod === "GET" ? $_GET : $_POST), $pathVariables, $requestPath, $hostClient, $route);
 
 
                     $instance = $this->getInstanceBy($route->class, $Dmanager);
