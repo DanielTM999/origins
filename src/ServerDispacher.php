@@ -531,7 +531,7 @@
                     $atribute = $reflect->getAttributes(Controller::class);
     
                     if (isset($atribute) && !empty($atribute)){
-                        $this->mappingControllerClass(new ReflectionClass($class));
+                        $this->mappingControllerClass($reflect);
                     }
     
                     $parentClass = $reflect->getParentClass();
@@ -556,7 +556,7 @@
                     $atribute = $reflect->getAttributes(Controller::class);
     
                     if (isset($atribute) && !empty($atribute)){
-                        $this->mappingControllerClass(new ReflectionClass($class));
+                        $this->mappingControllerClass($reflect);
                         $_SESSION["selectedClass"][] =  $class;
                     }
     
