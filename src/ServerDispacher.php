@@ -299,12 +299,7 @@
         {   
             try {
                 if(isset($_ENV["notfoundPage"])){
-                    $htmlFilePath = $_ENV["notfoundPage"];
-                    if (strpos($htmlFilePath, '{base.dir}') !== false) {
-                        $baseDir = $_ENV["base.dir"];
-                        $htmlFilePath = str_replace('{base.dir}', $baseDir, $htmlFilePath);
-                    }
-                    
+                    $htmlFilePath = $_ENV["notfoundPage"];            
                     if (file_exists($htmlFilePath)){
                         return file_get_contents($htmlFilePath);
                     }
