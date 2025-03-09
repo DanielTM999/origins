@@ -182,6 +182,9 @@
         }
 
         private function getBaseDir(): string{
+            if(isset($_ENV["base.dir"])){
+                return $_ENV["base.dir"];
+            }
             $dirLibrary = __DIR__;
 
             while (strpos($dirLibrary, 'vendor') !== false) {

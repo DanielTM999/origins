@@ -29,7 +29,7 @@
             if (!file_exists($envFilePath)) {
                 touch($envFilePath);
             }
-
+            $_ENV["base.dir"] = self::$PROJECT_ENV;
             $this->readEnv($envFilePath);
         }
         
@@ -43,6 +43,7 @@
                         $key = trim($key);
                         $value = trim($value);
                         $value = $this->removeAspas($value);
+                        $value = str_replace('{project.dir}', self::$PROJECT_ENV, $value);
                         if (!empty($key)) {
                             $_ENV[$key] = $value;
                         }
