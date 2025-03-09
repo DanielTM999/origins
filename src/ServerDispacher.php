@@ -241,7 +241,7 @@
                             $args[0] = str_replace("[action]", $namemethod, $args[0]);
                         }
                         $path = $pathMapping . $args[0];
-                        $this->addRouteGet($path, $reflect, $method);
+                        $this->addRoute($path, $reflect, $method, HttpMethod::GET);
                         break;
                     case Post::class:
                         $args = $attribute->getArguments();
@@ -249,7 +249,7 @@
                             $args[0] = str_replace("[action]", $namemethod, $args[0]);
                         }
                         $path = $pathMapping . $args[0];
-                        $this->addRoutePost($path, $reflect, $method);
+                        $this->addRoute($path, $reflect, $method, HttpMethod::POST);
                         break;
                     case Delete::class:
                         $args = $attribute->getArguments();
@@ -257,7 +257,7 @@
                             $args[0] = str_replace("[action]", $namemethod, $args[0]);
                         }
                         $path = $pathMapping . $args[0];
-                        $this->addRouteDelete($path, $reflect, $method);
+                        $this->addRoute($path, $reflect, $method, HttpMethod::DELETE);
                         break;
                     case Put::class:
                         $args = $attribute->getArguments();
@@ -265,33 +265,22 @@
                             $args[0] = str_replace("[action]", $namemethod, $args[0]);
                         }
                         $path = $pathMapping . $args[0];
-                        $this->addRoutePut($path, $reflect, $method);
+                        $this->addRoute($path, $reflect, $method, HttpMethod::PUT);
+                        break;
+                    case Patch::class:
+                        $args = $attribute->getArguments();
+                        if(strpos($args[0], "[action]") !== false){
+                            $args[0] = str_replace("[action]", $namemethod, $args[0]);
+                        }
+                        $path = $pathMapping . $args[0];
+                        $this->addRoute($path, $reflect, $method, HttpMethod::PATCH);
                         break;
                 }
             }
         }
 
-        private function addRouteGet(string $Path, ReflectionClass $class, ReflectionMethod $method)
-        {
-            $route = new Router($Path, HttpMethod::GET, $class, $method);
-            self::$routes[] = $route;
-        }
-
-        private function addRoutePost(string $Path, ReflectionClass $class, ReflectionMethod $method)
-        {
-            $route = new Router($Path, HttpMethod::POST, $class, $method);
-            self::$routes[] = $route;
-        }
-    
-        private function addRouteDelete(string $Path, ReflectionClass $class, ReflectionMethod $method)
-        {
-            $route = new Router($Path, HttpMethod::DELETE, $class, $method);
-            self::$routes[] = $route;
-        }
-    
-        private function addRoutePut(string $Path, ReflectionClass $class, ReflectionMethod $method)
-        {
-            $route = new Router($Path, HttpMethod::PUT, $class, $method);
+        private function addRoute(string $Path, ReflectionClass $class, ReflectionMethod $method, string $httpMethod){
+            $route = new Router($Path, $httpMethod, $class, $method);
             self::$routes[] = $route;
         }
 

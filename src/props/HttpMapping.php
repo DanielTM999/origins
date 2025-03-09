@@ -31,5 +31,10 @@
 
         }
     }
+
+    #[Attribute]
+    class Patch {
+        public function __construct(public string $value) {}
+    }
     
 ?>
