@@ -45,7 +45,8 @@
                             }
                         }
                     }
-                    if (strpos($directory, "composer") !== false || strpos($directory, "git") !== false || strpos($directory, "autoload") !== false || strpos($directory, "danieltm/origins" ) !== false || strpos($directory, "http-security\\vendor") !== false) {
+                    
+                    if (preg_match('#composer|git|autoload|danieltm[/\\\\]origins|http-security[/\\\\]vendor#', $directory)) {
                         $execute = false;
                     }
 
