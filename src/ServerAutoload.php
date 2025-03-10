@@ -158,7 +158,11 @@
             if(isset($cache["loadedFiles"])){
                 $loadedFiles = $cache["loadedFiles"];
                 foreach($loadedFiles as $file){
-                    require_once $file;
+                    try {
+                        require_once $file;
+                    } catch (\Throwable $e) {
+                        throw new \Exception("Erro ao carregar o arquivo '$file': possível redefinição de classe já carregada.");
+                    }
                 }
 
                 $intializers = null;
