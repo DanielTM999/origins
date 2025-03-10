@@ -5,7 +5,7 @@
         session_start();
     }
 
-    class Origin{
+    final class Origin{
         public static bool $runBytask = false;
         private static Origin $instance;
         private Dispacher $dispacher;
