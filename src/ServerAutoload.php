@@ -45,7 +45,7 @@
                             }
                         }
                     }
-                    
+
                     if (preg_match('#composer|git|autoload|danieltm[/\\\\]origins|http-security[/\\\\]vendor#', $directory)) {
                         $execute = false;
                     }
@@ -86,7 +86,11 @@
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
             foreach($this->loadedFiles as $file){
-                require_once $file;
+                try {
+                    require_once $file;
+                } catch (\Throwable $e) {
+                    throw new \Exception("Erro ao carregar o arquivo '$file': possível redefinição de classe já carregada.");
+                }
             }
 
             $classes = get_declared_classes();
