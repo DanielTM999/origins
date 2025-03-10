@@ -7,6 +7,7 @@
     use ReflectionMethod;
     use ReflectionProperty;
     use Throwable;
+    use Daniel\Origins\HttpMethod;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
