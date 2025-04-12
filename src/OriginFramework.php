@@ -2,12 +2,12 @@
 
     namespace Daniel\Origins;
 
-    final class OriginFramework extends OriginWebApp{
-        private Dispacher $dispacher;
-        private Autoloader $autoload;
-        private DependencyManager $Dmanager;
-        private Config $serverConfg;
-        private VarEnv $varEnvLoader;
+    class OriginFramework extends OriginWebApp{
+        protected Dispacher $dispacher;
+        protected Autoloader $autoload;
+        protected DependencyManager $Dmanager;
+        protected Config $serverConfg;
+        protected VarEnv $varEnvLoader;
 
         public function __construct()
         {
@@ -36,23 +36,23 @@
             $this->dispacher->dispach($this->Dmanager);
         }
 
-        private function getConfigOnInit() : Config{
+        protected function getConfigOnInit() : Config{
             return new ServerConfig($this->Dmanager);
         }
 
-        private function getVarEnv() : VarEnv{
+        protected function getVarEnv() : VarEnv{
             return new ServerVarEnv();
         }
 
-        private function getDispacher(): Dispacher{
-        return new ServerDispacher();
+        protected function getDispacher(): Dispacher{
+            return new ServerDispacher();
         }
 
-        private function getAutoload(): Autoloader{
-        return new ServerAutoload();
+        protected function getAutoload(): Autoloader{
+            return new ServerAutoload();
         }
 
-        private function getDependecyManager(): DependencyManager{
+        protected function getDependecyManager(): DependencyManager{
             return new ServerDependencyManager();
         }
 

@@ -6,11 +6,11 @@
         session_start();
     }
 
-    final class OriginFrameworkTest extends OriginTest{
-        private Autoloader $autoload;
-        private DependencyManager $Dmanager;
-        private Config $serverConfg;
-        private VarEnv $varEnvLoader;
+    class OriginFrameworkTest extends OriginTest{
+        protected Autoloader $autoload;
+        protected DependencyManager $Dmanager;
+        protected Config $serverConfg;
+        protected VarEnv $varEnvLoader;
 
         public function __construct()
         {
@@ -39,19 +39,19 @@
             echo "Rodando testes";
         }
 
-        private function getConfigOnInit() : Config{
+        protected function getConfigOnInit() : Config{
             return new ServerConfig($this->Dmanager);
         }
 
-        private function getVarEnv() : VarEnv{
+        protected function getVarEnv() : VarEnv{
             return new ServerVarEnv();
         }
 
-        private function getAutoload(): Autoloader{
+        protected function getAutoload(): Autoloader{
             return new ServerAutoload();
         }
 
-        private function getDependecyManager(): DependencyManager{
+        protected function getDependecyManager(): DependencyManager{
             return new ServerDependencyManager();
         }
 
