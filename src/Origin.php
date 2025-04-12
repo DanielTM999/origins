@@ -25,7 +25,7 @@
             $this->varEnvLoader->load();
             $this->autoload->load();
             $this->dispacher->map();
-            $this->Dmanager->start();
+            $this->Dmanager->load();
 
             $this->Dmanager->addDependency(Dispacher::class, $this->dispacher);
 
@@ -57,8 +57,8 @@
            return new ServerAutoload();
         }
 
-        private function getDependecyManager(){
-            return new DependencyManager();
+        private function getDependecyManager(): DependencyManager{
+            return new ServerDependencyManager();
         }
 
         public static function initialize(bool $byTask = false): Origin
