@@ -46,7 +46,7 @@
                         }
                     }
 
-                    if (preg_match('#composer|git|autoload|danieltm[/\\\\]origins|http-security[/\\\\]vendor#', $directory)) {
+                    if (preg_match('#composer|git|autoload|test|danieltm[/\\\\]origins|http-security[/\\\\]vendor#', $directory)) {
                         $execute = false;
                     }
 
