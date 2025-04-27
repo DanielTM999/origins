@@ -23,23 +23,13 @@
 
         public function start(){
             $envPath = $_ENV["base.dir"];
-            $serializableClass = serialize($this->runnable);
             $fileName = "$envPath/thread_task_".uniqid().".php";
+            $encodedRunnable = base64_encode(serialize($this->runnable));
+            $idThread = $this->idThread;
+            $statusFile = $this->statusFile;
 
-            $contentThreadAction = '<?php'."\n";
-            $contentThreadAction .= 'session_start();'."\n";
-            $contentThreadAction .= 'require "./vendor/autoload.php";'."\n";
-            $contentThreadAction .= 'use Daniel\Origins\Origin;'."\n";
-            $contentThreadAction .= 'try {'."\n";
-            $contentThreadAction .= '$app = Origin::initialize(true);'."\n";
-            $contentThreadAction .= '$serializableClass = unserialize('."'$serializableClass');\n";
-            $contentThreadAction .= '$serializableClass->run();'."\n";
-            $contentThreadAction .= '} catch (Exception $e) {'."\n";
-            $contentThreadAction .= '}'."\n";
-            $contentThreadAction .= 'unlink(__FILE__);'."\n";
-            $contentThreadAction .= 'echo "thread_task_status: done_'.$this->idThread.'";'."\n";
-            $contentThreadAction .= '?>';
-
+            $contentThreadAction = $this->getContentThread($idThread, $statusFile, $encodedRunnable);
+            
             file_put_contents($fileName, $contentThreadAction);
 
             $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
@@ -80,15 +70,45 @@
             }
         }
 
-        public function waitUntilFinished(): void
+        public function waitUntilFinished(int $timeoutMillis = 100000): void
         {
+            $elapsed = 0;
             while (!$this->isFinished()) {
                 usleep(100000); 
+                $elapsed += 100;
+                if ($elapsed >= $timeoutMillis) {
+                    throw new \RuntimeException("Thread timeout after {$timeoutMillis}ms");
+                }
             }
         }
 
         public function getActionResult(): string{
             return $this->resultContent ?? null;
+        }
+
+        private function getContentThread($idThread, $statusFile, $encodedRunnable): string{
+            $contentThreadAction = <<<PHP
+                <?php
+                session_start();
+                require "./vendor/autoload.php";
+
+                use Daniel\Origins\Origin;
+
+                try {
+                    \$app = Origin::initialize(true);
+                    \$serializableClass = unserialize(base64_decode('$encodedRunnable'));
+                    \$serializableClass->run();
+                    file_put_contents("$statusFile", "thread_task_status: done_$idThread");
+                } catch (Throwable \$e) {
+                    file_put_contents("$statusFile", "error: " . \$e->getMessage());
+                }
+
+                register_shutdown_function(function() {
+                    unlink(__FILE__);
+                });
+            PHP;
+
+            return  $contentThreadAction;
         }
 
     }
