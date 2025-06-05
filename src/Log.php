@@ -1,7 +1,7 @@
 <?php
     namespace Daniel\Origins;
 
-use RuntimeException;
+    use RuntimeException;
 
     class Log{
         public static function info($message, string $filename = "App.log"): void{

@@ -33,7 +33,6 @@
             $this->readEnv($envFilePath);
         }
         
-
         private function readEnv(string $filePath){
             $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
             foreach ($lines as $line){

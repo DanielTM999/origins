@@ -2,10 +2,12 @@
     namespace Daniel\Origins;
     use Override;
     use ReflectionClass;
+use RuntimeException;
 
     final class ServerAutoload extends Autoloader{
         public static string $metaDadosPath = "./origins.json";
         private array $loadedFiles = [];
+        private array $modules = [];
 
         #[Override]
         public function load(): void{
@@ -57,6 +59,9 @@
                     if($execute){
                         $path = $directory . DIRECTORY_SEPARATOR . $item;
                         if (is_dir($path)) {
+                            if (isset($this->modules[$item])) {
+                                $this->modules[$item]['modulePath'] = $path;
+                            }
                             $this->autoloadFromDirectory($path);
                         } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php' && !($this->containsClassView($path))) {
                             $this->requireOnce($path);
@@ -69,8 +74,7 @@
             }
         }
 
-        private function requireOnce($file)
-        {      
+        private function requireOnce($file){      
             try{
                 if (!in_array($file, $this->loadedFiles) && !($file === $_ENV["base.dir"]."\\index.php")) {
                     $this->loadedFiles[] = $file;
@@ -83,6 +87,7 @@
         private function loadElements(bool $addCache = true){
             $dirBase = $this->getBaseDir();
             $_ENV["base.dir"] = $dirBase;
+            $this->loadModulesConfigs();
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
             foreach($this->loadedFiles as $file){
@@ -134,6 +139,7 @@
                 $this->addCache([
                     "baseDir" => $dirBase,
                     "loadedFiles" => $this->loadedFiles,
+                    "modules" => $this->modules,
                     "configurations" => [
                         "initializers" => $configurations,
                         "middlewares" => $middlewares,
@@ -174,6 +180,7 @@
                 $routes = [];
 
                 $configurations = $cache["configurations"] ?? null;
+                $this->modules = $cache["modules"] ?? [];
                 if(isset($configurations)){
                     $intializers = $configurations["initializers"] ?? null;
                     $dependecies = $configurations["dependecies"] ?? null;
@@ -258,6 +265,7 @@
             $_SESSION["origins.controllerAdvice"] = $controllerAdvice;
             $_SESSION["origins.files"] = $this->loadedFiles;
             $_SESSION["origins.aspects"] = $aspects;
+            $_SESSION["origins.modules"] = $this->modules;
             $_SESSION["origins.loaders"] = [
                 "dependencys" => $dependecies,
                 "controllers" => $controllers,
@@ -268,6 +276,79 @@
                 "routes" => $routes
             ];
         }
+
+        private function loadModulesConfigs() {
+            $moduleInfoPath = $_ENV["base.dir"] . DIRECTORY_SEPARATOR . "modules.config";
+
+            if (!file_exists($moduleInfoPath)) {
+                return;
+            }
+
+            $content = file_get_contents($moduleInfoPath);
+            $moduleContent = $this->extractModulesBlock($content);
+            
+            if ($moduleContent === null) {
+                throw new RuntimeException("Bloco @modules{...} não encontrado.");
+            }
+
+            $this->modules = $this->parseModules($moduleContent);
+        }
+
+        private function extractModulesBlock(string $content): ?string {
+            $startPos = strpos($content, '@modules{');
+            if ($startPos === false) {
+                return null;
+            }
+
+            $pos = $startPos + strlen('@modules{');
+            $depth = 1;
+            $length = strlen($content);
+
+            for (; $pos < $length; $pos++) {
+                if ($content[$pos] === '{') {
+                    $depth++;
+                } elseif ($content[$pos] === '}') {
+                    $depth--;
+                    if ($depth === 0) {
+                        break;
+                    }
+                }
+            }
+
+            if ($depth !== 0) {
+                throw new RuntimeException("Bloco @modules{ mal formado");
+            }
+
+            return substr($content, $startPos + strlen('@modules{'), $pos - ($startPos + strlen('@modules{')));
+        }
+
+        private function parseModules(string $block): array {
+            $modules = [];
+            $pattern = '/@(\w+)\s*(\{([^}]*)\})?/s';
+
+            preg_match_all($pattern, $block, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $moduleName = $match[1];
+                $body = $match[3] ?? null;
+                $config = [];
+
+                if ($body) {
+                    $lines = preg_split('/\r\n|\r|\n/', trim($body));
+                    foreach ($lines as $line) {
+                        if (preg_match('/^(\w+)\s*=\s*(.+)$/', trim($line), $kv)) {
+                            $config[$kv[1]] = $kv[2];
+                        }
+                    }
+                }
+
+                $modules[$moduleName] = $config;
+            }
+
+            return $modules;
+        }
+
+
     } 
 
 ?>
