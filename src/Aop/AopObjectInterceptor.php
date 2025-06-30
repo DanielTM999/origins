@@ -26,22 +26,21 @@ use ReflectionObject;
             self::fillAspects();
             self::createAspectsInstances($this->dManager);
             $result = null;
-            $aspectCanExecute = [];
-            foreach(self::$aspectsInstances as $aspect){
-                $execute = self::canExecuteAspects($aspect, $target, $method, $args);
-                $aspectId = spl_object_id($aspect);
-                $aspectCanExecute[$aspectId] = $execute;
-                if($execute) self::executeAspect("aspectBefore", $aspect, $target, $method, $args, $result);
+            $executedAspects = [];
+            foreach (self::$aspectsInstances as $index => $aspect) {
+                if (self::canExecuteAspects($aspect, $target, $method, $args)) {
+                    self::executeAspect("aspectBefore", $aspect, $target, $method, $args, $result);
+                    $executedAspects[] = $index;
+                }
             }
 
             $result = $target->$method(...$args);
 
-            foreach(self::$aspectsInstances as $aspect){   
-                $aspectId = spl_object_id($aspect);
-                if ($aspectCanExecute[$aspectId] ?? false) {
-                    $result = self::executeAspect("aspectAfter", $aspect, $target, $method, $args, $result);
-                }
+            foreach ($executedAspects as $index) {
+                $aspect = self::$aspectsInstances[$index];
+                $result = self::executeAspect("aspectAfter", $aspect, $target, $method, $args, $result);
             }
+            
             return $result;
         }
         
