@@ -7,11 +7,11 @@
     use ReflectionMethod;
     use Throwable;
     use Daniel\Origins\HttpMethod;
+use ReflectionObject;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
         private static $middlewares = [];
-        private static $aspects = [];
         private static ReflectionClass $controllerErrorReflect;
         private static ControllerAdvice $controllerError;
 
@@ -22,7 +22,6 @@
                 $loaders = $_SESSION["origins.loaders"];    
                 $controllers = $loaders["controllers"] ?? [];
                 $middlewares = $loaders["middlewares"] ?? [];
-                $aspects = $loaders["aspects"] ?? [];
                 $routes = $loaders["routes"] ?? [];
                 $controllerAdvice = $loaders["controllerAdvice"] ?? null;
 
@@ -60,11 +59,6 @@
                     self::$middlewares[] = $reflect;
                 }
 
-                foreach($aspects as $aspect){
-                    $reflect = new ReflectionClass($aspect);
-                    self::$aspects[] = $reflect;
-                }
-
             }else{
                 $this->mapIfNotloaded();
             }
@@ -80,17 +74,7 @@
 
                 return $priorityB <=> $priorityA;
             });
-            usort(self::$aspects, function($a, $b){
-                $attributesA = $a->getAttributes(FilterPriority::class);
-                $attributesB = $b->getAttributes(FilterPriority::class);
-
-                $priorityAArgs0 = isset($attributesA[0]) ? $attributesA[0]->getArguments() : [0];
-                $priorityBArgs0 = isset($attributesB[0]) ? $attributesB[0]->getArguments() : [0];
-                $priorityA = isset($priorityAArgs0[0]) ? $priorityAArgs0[0] : 0;
-                $priorityB = isset($priorityBArgs0[0]) ? $priorityBArgs0[0] : 0;
-
-                return $priorityB <=> $priorityA;
-            });
+            
         }
 
         #[Override]
@@ -150,19 +134,8 @@
                             $instanceMiddleware = $Dmanager->tryCreate($md);
                             $this->ExecuteMiddleware($instanceMiddleware, $req);
                         }
-                        $instanceAspectList = [];
-
-                        foreach(self::$aspects as $aspect){
-                            $instanceAspect = $Dmanager->tryCreate($aspect);
-                            $instanceAspectList[] = &$instanceAspect;
-                            $this->executeAspect($instanceAspect, $method, $methodArgs, $instance, "before");
-                        }
 
                         $this->ExecuteMethod($method, $instance, $methodArgs);
-
-                        foreach($instanceAspectList as $instanceAspect){
-                            $this->executeAspect($instanceAspect, $method, $methodArgs, $instance, "after");
-                        }
                     } catch (\Throwable $th) {
                         $this->executeControllerAdviceException($route->class, $th, $Dmanager);
                     }
@@ -375,18 +348,6 @@
                 }
             } catch (Exception $e) {
                 throw $e;
-            }
-        }
-
-        private function executeAspect(Aspect $aspect, ReflectionMethod &$method, array &$args, object &$controllerEntity, string $methodType){
-            try {
-                if($methodType === "before"){
-                    $aspect->aspectBefore($controllerEntity, $method, $args);
-                }else if($methodType === "after"){
-                    $aspect->aspectAfter($controllerEntity, $method, $args);
-                }
-            } catch (Throwable $th) {
-                throw $th;
             }
         }
 

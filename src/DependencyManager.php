@@ -2,7 +2,7 @@
 
     namespace Daniel\Origins;
 
-use ReflectionClass;
+    use ReflectionClass;
 
     interface DependencyManager
     {

@@ -2,19 +2,26 @@
 
     namespace Daniel\Origins;
 
+    use Daniel\Origins\Aop\AopObjectInterceptor;
+    use Daniel\Origins\proxy\ObjectInterceptor;
+    use Daniel\Origins\proxy\ProxyFactory;
     use Exception;
     use Override;
     use ReflectionClass;
+    use ReflectionMethod;
+    use ReflectionParameter;
     use ReflectionProperty;
 
     final class ServerDependencyManager implements DependencyManager
     {
         private static $dependency_creator = [];
         private static $dependencies = [];
+        private readonly ObjectInterceptor $inteceptor;
     
         public function __construct()
         {
             $this->autoInject();
+            $this->inteceptor = new AopObjectInterceptor($this);
         }
 
         #[Override]
@@ -60,7 +67,7 @@
                 $reflection = new ReflectionClass($class);
             }
 
-            $dependecyObject = $this->getInstanceOrActivator($reflection, false);
+            $dependecyObject = $this->getInstanceOrActivator($reflection);
         
             return is_callable($dependecyObject)
                     ? $dependecyObject()
@@ -129,27 +136,36 @@
             }
         }
 
-        private function getInstanceOrActivator(ReflectionClass $reflect, bool $injectChildern = true): object|null{
+        private function getInstanceOrActivator(ReflectionClass $reflect): object|null{
             $constructor = $reflect->getConstructor();
             $isSingleton = AnnotationsUtils::isAnnotationPresent($reflect, Singleton::class);
-
+            $returnedObject = null;
             if ($constructor !== null && $constructor->getNumberOfRequiredParameters() > 0){
-                return null;
+                if($isSingleton){
+                    $instance = $this->createObjectContructors($reflect, $constructor);
+                    $this->fillObject($reflect, $instance);
+                    $returnedObject = $this->createProxy($instance);
+                }
+                $returnedObject = function() use($reflect, $constructor){
+                    $instance = $this->createObjectContructors($reflect, $constructor);
+                    $this->fillObject($reflect, $instance);
+                    return $this->createProxy($instance);
+                };
             }else{
                 if($isSingleton){
                     $instance = $this->createObjectNoContructors($reflect);
                     $this->fillObject($reflect, $instance);
-                    return $instance;
-                }else{
-                    $activator = function() use($reflect){
-                        $instance = $this->createObjectNoContructors($reflect);
-                        $this->fillObject($reflect, $instance);
-                        return $instance;
-                    };
-                    return $activator;
+                    $returnedObject = $this->createProxy($instance);
                 }
+
+                $returnedObject = function() use($reflect){
+                    $instance = $this->createObjectNoContructors($reflect);
+                    $this->fillObject($reflect, $instance);
+                    return $this->createProxy($instance);
+                };
             }
 
+            return $returnedObject;
         }
 
         private function fillObject(ReflectionClass|null &$reflect = null, object &$instance): void{
@@ -158,14 +174,22 @@
             $vars = $reflect->getProperties();
             foreach($vars as $var){
 
-                $type = $var->getType() ?? "";
-                if(isset($type)){
-                    $name = $type->getName() ?? "";
-                    if($name === "PDO"){
-                        $var->setAccessible(false);
-                        continue;
+                $type = $var->getType();
+                $name = null;
+                if ($type instanceof \ReflectionNamedType) {
+                    $name = $type->getName();
+                } elseif ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
+                    $types = $type->getTypes();
+                    if (!empty($types) && $types[0] instanceof \ReflectionNamedType) {
+                        $name = $types[0]->getName();
                     }
                 }
+
+                if ($name === 'PDO') {
+                    $var->setAccessible(false);
+                    continue;
+                }
+
                 if(AnnotationsUtils::isAnnotationPresent($var, Inject::class)){
                     $object = $this->getInternalDependency($var);
                     $var->setAccessible(true);
@@ -178,21 +202,54 @@
             return $reflect->newInstance();
         }
 
-        private function getInternalDependency(ReflectionProperty $var): object|null{
+        private function createObjectContructors(ReflectionClass &$reflect, ReflectionMethod $constructor): object|null{
+            $params = $constructor->getParameters();
+            $args = [];
+
+            foreach ($params as $param) {
+                if ($param->isDefaultValueAvailable()) {
+                    $args[] = $param->getDefaultValue();
+                    continue;
+                }
+
+                $type = $param->getType();
+
+                if ($type instanceof \ReflectionNamedType) {
+                    if (!$type->isBuiltin()) {
+                        try{
+                            $args[] = $this->getInternalDependency($param);
+                        }catch(\Exception $e){
+                            $args[] = null;
+                        }
+                    } else {
+                       return $this->getDefaultValueFor($type);
+                    } 
+                } else {
+                    $args[] = null;
+                }
+            }
+
+            return $reflect->newInstanceArgs($args);
+        }
+
+        private function getInternalDependency(ReflectionProperty|ReflectionParameter $var): object|null{
             $varName = $var->getName();
             $name = $var->getType();
             $name = $name->getName();
             $qualifier = $this->getQualifier($var);
             $dependecyPresent = isset(self::$dependencies[$name]);
-
+            
             if($dependecyPresent){
                 $dependecyObject = self::$dependencies[$name][$qualifier];
                 return is_callable($dependecyObject)
-                ? $dependecyObject()
-                : (is_object($dependecyObject)
-                    ? $dependecyObject
-                    : throw new Exception("no qualifier defined to: $name|$varName"));
-            }else{
+                    ? $dependecyObject()
+                    : (is_object($dependecyObject)
+                        ? $dependecyObject
+                        : throw new Exception("no qualifier defined to: $name|$varName"));
+            }
+
+            if ($var instanceof \ReflectionProperty) {
+                
                 $subDependencyName = null;
                 if (AnnotationsUtils::isAnnotationPresent($var, Inject::class)){
                     $propClass = $var->getType();
@@ -206,11 +263,26 @@
                 }
 
                 return $this->injectSubDependecies($subDependencyName);
+                
+            }else if($var instanceof \ReflectionParameter){
+                $subDependencyName = null;
+                $propClass = $var->getType();
+                if ($propClass instanceof \ReflectionNamedType) {
+                    $typeName = $propClass->getName();
+
+                    if (!$propClass->isBuiltin() && $typeName !== 'mixed') {
+                        $subDependencyName = $typeName;
+                        return $this->injectSubDependecies($subDependencyName);
+                    }
+                    return $this->getDefaultValueFor($propClass);
+                }
+
             }
 
+            return null;
         }
 
-        private function getQualifier(ReflectionProperty|ReflectionClass $reflect): string{
+        private function getQualifier(ReflectionProperty|ReflectionClass|ReflectionParameter $reflect): string{
 
             if(AnnotationsUtils::isAnnotationPresent($reflect, Qualifier::class)){
                 $args = AnnotationsUtils::getAnnotation($reflect, Qualifier::class);
@@ -251,6 +323,26 @@
                 self::$dependencies[DependencyManager::class][$qualifier] = $this;
             }
         }
+
+        private function createProxy(object $realInstance): object{
+            $proxyFactory = new ProxyFactory($realInstance, $this->inteceptor);
+            return $proxyFactory->createProxy();
+        }
+
+        private function getDefaultValueFor(?\ReflectionNamedType $type): mixed
+        {
+            if (!$type) return null;
+
+            return match ($type->getName()) {
+                'int'    => 0,
+                'float'  => 0.0,
+                'bool'   => false,
+                'string' => '',
+                'array'  => [],
+                default  => null,
+            };
+        }
+
 
     }
    
