@@ -53,7 +53,6 @@ use ReflectionObject;
                     $methodsCode
 
                     public function __call(\$name, \$args) {
-                        echo "teste";
                         if (\$this->__interceptor && method_exists(\$this->__interceptor, 'invoke')) {
                             return \$this->__interceptor->invoke(\$this->__target, \$name, \$args);
                         }
