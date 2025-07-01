@@ -126,7 +126,7 @@ use ReflectionObject;
 
 
                     $instance = $Dmanager->tryCreate($route->class);
-                    $method = $route->methodClass;
+                    $method = new ReflectionMethod($instance, $route->methodClass->getName());
 
                     try {
                         $methodArgs = $this->getMainMethodExecuteArgs($method, $req);

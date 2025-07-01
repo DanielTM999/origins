@@ -139,7 +139,7 @@ use ReflectionObject;
             return true;
         }
 
-        private function createMethodsOverrideCode(): string {
+       private function createMethodsOverrideCode(): string {
             $methodsCode = '';
 
             foreach ($this->reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
@@ -150,6 +150,8 @@ use ReflectionObject;
                 $name = $method->getName();
                 $params = [];
                 $args = [];
+                $argsRef = [];
+
                 foreach ($method->getParameters() as $param) {
                     $paramCode = '';
 
@@ -173,7 +175,8 @@ use ReflectionObject;
                         $paramCode .= '...';
                     }
 
-                    $paramCode .= '$' . $param->getName();
+                    $paramName = '$' . $param->getName();
+                    $paramCode .= $paramName;
 
                     if ($param->isOptional() && !$param->isVariadic()) {
                         $defaultValue = $param->isDefaultValueAvailable() ? var_export($param->getDefaultValue(), true) : 'null';
@@ -183,14 +186,17 @@ use ReflectionObject;
                     $params[] = $paramCode;
 
                     if ($param->isVariadic()) {
-                        $args[] = '...' . '$' . $param->getName();
+                        $args[] = '...' . $paramName;
+                        $argsRef[] = '...' . $paramName;
                     } else {
-                        $args[] = '$' . $param->getName();
+                        $args[] = $paramName;
+                        $argsRef[] = ($param->isPassedByReference() ? '&' : '') . $paramName;
                     }
                 }
 
                 $paramsStr = implode(', ', $params);
                 $argsStr = implode(', ', $args);
+                $argsRefStr = 'array(' . implode(', ', $argsRef) . ')';
 
                 $returnTypeCode = '';
                 $returnType = $method->getReturnType();
@@ -205,31 +211,32 @@ use ReflectionObject;
                     }
                 }
 
-
-                $returnType = $method->getReturnType();
                 $isVoid = $returnType instanceof \ReflectionNamedType && $returnType->getName() === 'void';
 
-                if($isVoid){
+                if ($isVoid) {
                     $methodsCode .= <<<PHP
                         public function $name($paramsStr)$returnTypeCode {
                             if (\$this->__interceptor && method_exists(\$this->__interceptor, 'invoke')) {
-                                \$this->__interceptor->invoke(\$this->__target, '$name', func_get_args());
-                            }else{
+                                \$args = $argsRefStr;
+                                \$this->__interceptor->invoke(\$this->__target, '$name', \$args);
+                            } else {
                                 \$this->__target->$name($argsStr);
                             }
                         }
+
                     PHP;
-                }else{
+                } else {
                     $methodsCode .= <<<PHP
                         public function $name($paramsStr)$returnTypeCode {
                             if (\$this->__interceptor && method_exists(\$this->__interceptor, 'invoke')) {
-                                return \$this->__interceptor->invoke(\$this->__target, '$name', func_get_args());
+                                \$args = $argsRefStr;
+                                return \$this->__interceptor->invoke(\$this->__target, '$name', \$args);
                             }
                             return \$this->__target->$name($argsStr);
                         }
+
                     PHP;
                 }
-
             }
 
             return $methodsCode;

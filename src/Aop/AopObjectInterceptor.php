@@ -7,6 +7,7 @@ use Daniel\Origins\Log;
 use Daniel\Origins\proxy\ObjectInterceptor;
     use Override;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionObject;
 
     final class AopObjectInterceptor extends ObjectInterceptor
@@ -22,14 +23,16 @@ use ReflectionObject;
         }
 
         #[Override]
-        public function invoke(object $target, string $method, array $args){
+        public function invoke(object &$target, string $method, array &$args){
             self::fillAspects();
             self::createAspectsInstances($this->dManager);
             $result = null;
             $executedAspects = [];
+            $reflectionMethod = new ReflectionMethod($target, $method);
+
             foreach (self::$aspectsInstances as $index => $aspect) {
-                if (self::canExecuteAspects($aspect, $target, $method, $args)) {
-                    self::executeAspect("aspectBefore", $aspect, $target, $method, $args, $result);
+                if (self::canExecuteAspects($aspect, $target, $reflectionMethod, $args)) {
+                    self::executeAspect("aspectBefore", $aspect, $target, $reflectionMethod, $args, $result);
                     $executedAspects[] = $index;
                 }
             }
@@ -38,7 +41,7 @@ use ReflectionObject;
 
             foreach ($executedAspects as $index) {
                 $aspect = self::$aspectsInstances[$index];
-                $result = self::executeAspect("aspectAfter", $aspect, $target, $method, $args, $result);
+                $result = self::executeAspect("aspectAfter", $aspect, $target, $reflectionMethod, $args, $result);
             }
             
             return $result;
@@ -111,27 +114,15 @@ use ReflectionObject;
             return $dManager->tryCreate($reflect);
         }
 
-        private static function canExecuteAspects(Aspect &$aspect, object &$target, string &$method, array &$args){
-            $ReflectObject = new ReflectionObject($target);
-            if (!$ReflectObject->hasMethod($method)) {
-                return false;
-            }
-            $reflectionMethod = $ReflectObject->getMethod($method);
-            return $aspect->pointCut($target, $reflectionMethod, $args);
+        private static function canExecuteAspects(Aspect &$aspect, object &$target, ReflectionMethod $method, array &$args){
+            return $aspect->pointCut($target, $method, $args);
         }
 
-        private static function executeAspect(string $point, Aspect &$aspect, object &$target, string &$method, array &$args, object|null &$result){
-            $ReflectObject = new ReflectionObject($target);
-            if (!$ReflectObject->hasMethod($method)) {
-                return;
-            }
-
-            $reflectionMethod = $ReflectObject->getMethod($method);
-
+        private static function executeAspect(string $point, Aspect &$aspect, object &$target, ReflectionMethod $method, array &$args, object|null &$result){
             if($point === "aspectBefore"){
-                $aspect->aspectBefore($target, $reflectionMethod, $args);
+                $aspect->aspectBefore($target, $method, $args);
             }else if($point === "aspectAfter"){
-                return $aspect->aspectAfter($target, $reflectionMethod, $args, $result);
+                return $aspect->aspectAfter($target, $method, $args, $result);
             }
 
         }
