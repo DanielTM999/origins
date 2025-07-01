@@ -4,17 +4,18 @@
 
     use ReflectionClass;
     use ReflectionMethod;
+    use ReflectionObject;
     use ReflectionParameter;
     use ReflectionProperty;
 
     final class AnnotationsUtils
     {
 
-        public static function isAnnotationPresent(ReflectionProperty|ReflectionClass|ReflectionMethod|ReflectionParameter $target, string $annotationClassName) : bool{
+        public static function isAnnotationPresent(ReflectionProperty|ReflectionClass|ReflectionMethod|ReflectionParameter|ReflectionObject $target, string $annotationClassName) : bool{
             return !empty($target->getAttributes($annotationClassName));
         }
 
-        public static function getAnnotation(ReflectionProperty|ReflectionClass|ReflectionMethod|ReflectionParameter $target, string $annotationClassName, bool $getInstance = false){
+        public static function getAnnotation(ReflectionProperty|ReflectionClass|ReflectionMethod|ReflectionParameter|ReflectionObject $target, string $annotationClassName, bool $getInstance = false){
             $attributes = $target->getAttributes($annotationClassName);
             if (empty($attributes)) {
                 return null;
