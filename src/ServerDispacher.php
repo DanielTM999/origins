@@ -7,13 +7,12 @@
     use ReflectionMethod;
     use Throwable;
     use Daniel\Origins\HttpMethod;
-use ReflectionObject;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
         private static $middlewares = [];
-        private static ReflectionClass $controllerErrorReflect;
-        private static ControllerAdvice $controllerError;
+        private static ?ReflectionClass $controllerErrorReflect;
+        private static ?ControllerAdvice $controllerError;
 
         
         #[Override]
@@ -24,7 +23,7 @@ use ReflectionObject;
                 $middlewares = $loaders["middlewares"] ?? [];
                 $routes = $loaders["routes"] ?? [];
                 $controllerAdvice = $loaders["controllerAdvice"] ?? null;
-
+                self::$controllerError = null;
                 if(isset($controllerAdvice)){
                     $reflect = new ReflectionClass($controllerAdvice);
                     self::$controllerErrorReflect = $reflect;
@@ -401,8 +400,17 @@ use ReflectionObject;
                 self::$controllerError = $Dmanager->tryCreate(self::$controllerErrorReflect);
                 self::$controllerError->onError($throwable);
             }else{
-                $error = $throwable->getMessage();
-                echo "<b>Error:</b> [$entityName] --> $error";
+                 http_response_code(500);
+                header('Content-Type: application/json; charset=utf-8');
+                $response = [
+                    'status' => 'error',
+                    'controller' => $entityName,
+                    'exception' => get_class($throwable),
+                    'message' => $throwable->getMessage(),
+                    'code' => $throwable->getCode(),
+                    'stackTrace' => explode("\n", $throwable->getTraceAsString())
+                ];
+                echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             }
         }
 
