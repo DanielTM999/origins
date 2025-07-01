@@ -2,13 +2,13 @@
     namespace Daniel\Origins\Aop;
 
     use Daniel\Origins\DependencyManager;
-use Daniel\Origins\FilterPriority;
-use Daniel\Origins\Log;
-use Daniel\Origins\proxy\ObjectInterceptor;
+    use Daniel\Origins\FilterPriority;
+    use Daniel\Origins\Log;
+    use Daniel\Origins\proxy\ObjectInterceptor;
     use Override;
-use ReflectionClass;
-use ReflectionMethod;
-use ReflectionObject;
+    use ReflectionClass;
+    use ReflectionMethod;
+    use ReflectionObject;
 
     final class AopObjectInterceptor extends ObjectInterceptor
     {

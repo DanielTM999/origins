@@ -1,7 +1,8 @@
 <?php
     namespace Daniel\Origins;
 
-    use Exception;
+use Daniel\Origins\Exceptions\CompositeException;
+use Exception;
     use Override;
     use ReflectionClass;
     use ReflectionMethod;
@@ -400,13 +401,23 @@
                 self::$controllerError = $Dmanager->tryCreate(self::$controllerErrorReflect);
                 self::$controllerError->onError($throwable);
             }else{
-                 http_response_code(500);
+                http_response_code(500);
                 header('Content-Type: application/json; charset=utf-8');
+                
+                if($throwable instanceof CompositeException){
+                    $messageList = $throwable->getErrorsAsString();
+                }else{
+                    $messageList = [
+                        $throwable->getMessage()
+                    ];
+                }
                 $response = [
                     'status' => 'error',
+                    'httpCode' => 500,
+                    'timestamp' => date('c'),
                     'controller' => $entityName,
                     'exception' => get_class($throwable),
-                    'message' => $throwable->getMessage(),
+                    'messages' => $messageList,
                     'code' => $throwable->getCode(),
                     'stackTrace' => explode("\n", $throwable->getTraceAsString())
                 ];
