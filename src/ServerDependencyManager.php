@@ -253,7 +253,7 @@
                 $subDependencyName = null;
                 if (AnnotationsUtils::isAnnotationPresent($var, Inject::class)){
                     $propClass = $var->getType();
-                    $args = AnnotationsUtils::getAnnotation($var, Inject::class);
+                    $args = AnnotationsUtils::getAnnotationArgs($var, Inject::class);
 
                     if (isset($propClass)) {
                         $subDependencyName = $propClass->getName();
@@ -285,7 +285,7 @@
         private function getQualifier(ReflectionProperty|ReflectionClass|ReflectionParameter $reflect): string{
 
             if(AnnotationsUtils::isAnnotationPresent($reflect, Qualifier::class)){
-                $args = AnnotationsUtils::getAnnotation($reflect, Qualifier::class);
+                $args = AnnotationsUtils::getAnnotationArgs($reflect, Qualifier::class);
                 return (!empty($args) && isset($args['qualifier'])) ? $args['qualifier'] : 'default';
             }
 
