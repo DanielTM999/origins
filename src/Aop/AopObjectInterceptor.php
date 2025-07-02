@@ -118,7 +118,7 @@
             return $aspect->pointCut($target, $method, $args);
         }
 
-        private static function executeAspect(string $point, Aspect &$aspect, object &$target, ReflectionMethod $method, array &$args, object|null &$result){
+        private static function executeAspect(string $point, Aspect &$aspect, object &$target, ReflectionMethod $method, array &$args, mixed &$result){
             if($point === "aspectBefore"){
                 $aspect->aspectBefore($target, $method, $args);
             }else if($point === "aspectAfter"){

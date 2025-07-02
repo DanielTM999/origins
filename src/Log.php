@@ -4,6 +4,7 @@
     use RuntimeException;
 
     class Log{
+        
         public static function info($message, string $filename = "App.log"): void{
             $message = self::serializateMessage($message);
             self::write($message, "[INFO]", $filename);
