@@ -368,6 +368,9 @@ use Exception;
                                 case Response::class:
                                     $args[] = new Response();
                                     break;
+                                case Module::class:
+                                    $args[] = ModuleManager::getCurrentModule();
+                                    break;
                                 default:
                                     $args[] = null;
                                     break;
