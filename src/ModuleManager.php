@@ -96,6 +96,10 @@
     final class ModuleManager
     {
 
+        public static function isModuleAvailable(): bool{
+            return isset($_SESSION["origins.modules"]) && !empty($_SESSION["origins.modules"] ?? []);
+        }
+
         public static function getCurrentModule(object|null $object = null) : Module|null{
             try{
                 if($object == null){

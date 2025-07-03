@@ -14,6 +14,7 @@
     use Daniel\Origins\Annotations\Post;
     use Daniel\Origins\Annotations\Put;
     use Daniel\Origins\Annotations\Delete;
+    use Daniel\Origins\Annotations\FilterPriority;
     use Daniel\Origins\Annotations\Patch;
 
     class ServerDispacher extends Dispacher{
