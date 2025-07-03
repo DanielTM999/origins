@@ -296,6 +296,19 @@
             }
 
             $this->modules = $this->parseModules($moduleContent);
+            if (isset($this->modules['global']) && is_array($this->modules['global'])) {
+                $globalProps = $this->modules['global'];
+                unset($this->modules['global']);
+
+                foreach ($this->modules as &$module) {
+                    foreach ($globalProps as $key => $value) {
+                        if (!array_key_exists($key, $module)) {
+                            $module[$key] = $value;
+                        }
+                    }
+                }
+                unset($module);
+            }
         }
 
         private function extractModulesBlock(string $content): ?string {
