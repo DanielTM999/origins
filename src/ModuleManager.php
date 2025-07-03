@@ -138,7 +138,8 @@
         private static function getStandardModule(array $backtrace): Module|null{
             foreach ($backtrace as $frame) {
                 if (isset($frame['file'])) {
-                    return self::resolveModuleFromFile($frame['file']);
+                    $module = self::resolveModuleFromFile($frame['file']);
+                    if($module != null) return $module;
                 }
             }
             return null;
