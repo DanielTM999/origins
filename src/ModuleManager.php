@@ -1,10 +1,10 @@
 <?php
     namespace Daniel\Origins;
 
-use InvalidArgumentException;
-use ReflectionClass;
-use ReflectionMethod;
-use ReflectionObject;
+    use InvalidArgumentException;
+    use ReflectionClass;
+    use ReflectionMethod;
+    use ReflectionObject;
 
     interface Module{
         function getModuleName(): string;
@@ -86,6 +86,14 @@ use ReflectionObject;
             }catch(\Throwable $t){
                 return null;
             }
+        }
+
+        public static function getModuleByName(string $moduleName): Module|null{
+            $modules = $_SESSION["origins.modules"] ?? [];
+            foreach ($modules as $moduleName => $data) {
+                if($moduleName == $moduleName) return $data;
+            }
+            return null;
         }
 
         public static function getModules() : array{
