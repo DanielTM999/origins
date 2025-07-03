@@ -31,7 +31,7 @@ use ReflectionObject;
             return $this->moduleArray["modulePath"] ?? "detached Module";
         }
 
-        function getModuleProperty(string $key, int $depth = 0){
+        function getModuleProperty(string $key, array|string $toReplace = "", int $depth = 0){
             if ($depth > 10) {
                 throw new \RuntimeException("Recursion depth exceeded while resolving module property: $key");
             }
@@ -47,8 +47,19 @@ use ReflectionObject;
             
             $value = preg_replace_callback('/\$\{?module\["([^"\]]+)"\]\}?/', function ($matches) use ($depth) {
                 $moduleKey = $matches[1];
-                return $this->getModuleProperty($moduleKey, $depth + 1) ?? '';
+                return $this->getModuleProperty($moduleKey, "", $depth + 1) ?? '';
             }, $value);
+
+            if (!empty($toReplace)) {
+                if (is_string($toReplace)) {
+                    $value = preg_replace('/\[\?\]/', $toReplace, $value);
+                } elseif (is_array($toReplace)) {
+                    foreach ($toReplace as $replacement) {
+                        $value = preg_replace('/\[\?\]/', $replacement, $value, 1);
+                    }
+                }
+            }
+
             return $value;
         }
 
