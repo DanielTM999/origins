@@ -1,6 +1,8 @@
 <?php
     namespace Daniel\Origins;
 
+    use Daniel\Origins\Annotations\Controller;
+    use Daniel\Origins\Annotations\Dependency;
     use Daniel\Origins\Aop\Aspect;
     use Override;
     use ReflectionClass;

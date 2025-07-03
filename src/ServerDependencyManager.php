@@ -2,6 +2,10 @@
 
     namespace Daniel\Origins;
 
+    use Daniel\Origins\Annotations\Dependency;
+    use Daniel\Origins\Annotations\Inject;
+    use Daniel\Origins\Annotations\Qualifier;
+    use Daniel\Origins\Annotations\Singleton;
     use Daniel\Origins\Aop\AopObjectInterceptor;
     use Daniel\Origins\proxy\ObjectInterceptor;
     use Daniel\Origins\proxy\ProxyFactory;

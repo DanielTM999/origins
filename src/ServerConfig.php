@@ -1,7 +1,9 @@
 <?php
 
     namespace Daniel\Origins;
-    use Override;
+
+use Daniel\Origins\Annotations\FilterPriority;
+use Override;
     use ReflectionClass;
     use ReflectionProperty;
 

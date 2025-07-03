@@ -1,13 +1,10 @@
 <?php
     namespace Daniel\Origins\proxy;
 
-use Daniel\Origins\AnnotationsUtils;
-use Daniel\Origins\Aop\Aspect;
-use Daniel\Origins\DependencyManager;
-use Daniel\Origins\DisableProxy;
-use Daniel\Origins\ServerDependencyManager;
-use ReflectionClass;
-use ReflectionObject;
+    use Daniel\Origins\Annotations\DisableProxy;
+    use Daniel\Origins\AnnotationsUtils;
+    use Daniel\Origins\Aop\Aspect;
+    use ReflectionClass;
 
     final class ProxyFactory{
 
@@ -30,13 +27,19 @@ use ReflectionObject;
             $proxyClassName = '__Proxy_' . str_replace('\\', '_', $this->targetClass) . md5(microtime(true));
 
             if (!class_exists($proxyClassName)) {
-                $this->createExtensiveClass($proxyClassName);
+                $code = $this->createExtensiveClass($proxyClassName);
+                eval($code);
             }
 
             $args = $this->getContructorArgs();
             $instance = new $proxyClassName(...$args);
             $this->copyProperties($instance);
             return $instance;
+        }
+
+        public function getProxyDefinition(): string{
+            $proxyClassName = '__Proxy_' . str_replace('\\', '_', $this->targetClass) . md5(microtime(true));
+            return $this->createExtensiveClass($proxyClassName);
         }
 
         private function createExtensiveClass(string $proxyClassName){
@@ -60,7 +63,7 @@ use ReflectionObject;
                     }
                 }
             PHP;
-            eval($code);
+            return $code;
         }
 
         private function createConstructorCode(): string {
@@ -139,7 +142,7 @@ use ReflectionObject;
             return true;
         }
 
-       private function createMethodsOverrideCode(): string {
+        private function createMethodsOverrideCode(): string {
             $methodsCode = '';
 
             foreach ($this->reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
@@ -150,8 +153,8 @@ use ReflectionObject;
                 $name = $method->getName();
                 $params = [];
                 $args = [];
-                $argsRef = [];
-
+                $argsRef = [];   
+                
                 foreach ($method->getParameters() as $param) {
                     $paramCode = '';
 

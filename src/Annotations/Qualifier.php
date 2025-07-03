@@ -1,6 +1,6 @@
 <?php
 
-    namespace Daniel\Origins;
+    namespace Daniel\Origins\Annotations;
 
     use Attribute;
 

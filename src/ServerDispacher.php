@@ -1,13 +1,20 @@
 <?php
     namespace Daniel\Origins;
 
-use Daniel\Origins\Exceptions\CompositeException;
-use Exception;
+    use Daniel\Origins\Exceptions\CompositeException;
+    use Exception;
     use Override;
     use ReflectionClass;
     use ReflectionMethod;
     use Throwable;
     use Daniel\Origins\HttpMethod;
+    use Daniel\Origins\Annotations\ContentType;
+    use Daniel\Origins\Annotations\Controller;
+    use Daniel\Origins\Annotations\Get;
+    use Daniel\Origins\Annotations\Post;
+    use Daniel\Origins\Annotations\Put;
+    use Daniel\Origins\Annotations\Delete;
+    use Daniel\Origins\Annotations\Patch;
 
     class ServerDispacher extends Dispacher{
         public static $routes = [];
@@ -129,13 +136,13 @@ use Exception;
                     $method = new ReflectionMethod($instance, $route->methodClass->getName());
 
                     try {
-                        $methodArgs = $this->getMainMethodExecuteArgs($method, $req);
+                        $methodArgs = $this->getMainMethodExecuteArgs($method, $route->methodClass, $req);
                         foreach(self::$middlewares as $md){
                             $instanceMiddleware = $Dmanager->tryCreate($md);
                             $this->ExecuteMiddleware($instanceMiddleware, $req);
                         }
 
-                        $this->ExecuteMethod($method, $instance, $methodArgs);
+                        $this->ExecuteMethod($method, $route->methodClass, $instance, $methodArgs);
                     } catch (\Throwable $th) {
                         $this->executeControllerAdviceException($route->class, $th, $Dmanager);
                     }
@@ -335,15 +342,18 @@ use Exception;
             return $html;
         }
 
-        private function ExecuteMethod(ReflectionMethod $method, $entity, array &$args)
+        private function ExecuteMethod(ReflectionMethod $method, ReflectionMethod $realMethod, $entity, array &$args)
         {   
             try {
                 $parameters = $method->getParameters();
+                
                 if ($parameters !== null) {
                     $result = $method->invokeArgs($entity, $args);
+                    $this->setContentType($realMethod);
                     $this->echoResult($result);
                 } else {
                     $result = $method->invoke($entity);
+                    $this->setContentType($realMethod);
                     $this->echoResult($result);
                 }
             } catch (Exception $e) {
@@ -351,7 +361,27 @@ use Exception;
             }
         }
 
-        private function getMainMethodExecuteArgs(ReflectionMethod $method, Request $req): array{
+        private function setContentType(ReflectionMethod $realMethod){
+            if(AnnotationsUtils::isAnnotationPresent($realMethod, ContentType::class)){
+                $headers = headers_list();
+                $contentTypeSet = false;
+
+                foreach ($headers as $header) {
+                    if (stripos($header, 'Content-Type:') === 0) {
+                        $contentTypeSet = true;
+                        break;
+                    }
+                }
+                if($contentTypeSet) return;
+
+                $atrubuteArgs = AnnotationsUtils::getAnnotationArgs($realMethod, ContentType::class);
+
+                $contentType = $atrubuteArgs[0] ?? ContentType::HTML;
+                header('Content-Type: ' . $contentType);
+            }
+        }
+
+        private function getMainMethodExecuteArgs(ReflectionMethod $method, ReflectionMethod $realMethod, Request $req): array{
             $args = [];
 
             try{
@@ -369,7 +399,7 @@ use Exception;
                                     $args[] = new Response();
                                     break;
                                 case Module::class:
-                                    $args[] = ModuleManager::getCurrentModule();
+                                    $args[] = ModuleManager::getCurrentModule($realMethod);
                                     break;
                                 default:
                                     $args[] = null;

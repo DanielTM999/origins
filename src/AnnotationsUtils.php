@@ -2,8 +2,8 @@
 
     namespace Daniel\Origins;
 
-use ReflectionAttribute;
-use ReflectionClass;
+    use ReflectionAttribute;
+    use ReflectionClass;
     use ReflectionMethod;
     use ReflectionObject;
     use ReflectionParameter;
