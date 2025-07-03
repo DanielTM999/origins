@@ -31,16 +31,25 @@ use ReflectionObject;
             return $this->moduleArray["modulePath"] ?? "detached Module";
         }
 
-        function getModuleProperty(string $key){
+        function getModuleProperty(string $key, int $depth = 0){
+            if ($depth > 10) {
+                throw new \RuntimeException("Recursion depth exceeded while resolving module property: $key");
+            }
             $value = $this->moduleArray[$key] ?? null;
             if (!is_string($value)) {
                 return $value;
             }
 
-            return preg_replace_callback('/\$\{?env\["([^"\]]+)"\]\}?/', function ($matches) {
+            $value = preg_replace_callback('/\$\{?env\["([^"\]]+)"\]\}?/', function ($matches) {
                 $envKey = $matches[1];
                 return $_ENV[$envKey] ?? '';
             }, $value);
+            
+            $value = preg_replace_callback('/\$\{?module\["([^"\]]+)"\]\}?/', function ($matches) use ($depth) {
+                $moduleKey = $matches[1];
+                return $this->getModuleProperty($moduleKey, $depth + 1) ?? '';
+            }, $value);
+            return $value;
         }
 
         public function getModuleAsJson(): string {
