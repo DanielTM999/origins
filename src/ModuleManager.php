@@ -119,6 +119,14 @@
             return null;
         }
 
+        public static function getModuleByFile($target): Module|null{
+            $filename = self::getFileForObject($target);
+            
+            return $filename !== false
+                ? self::resolveModuleFromFile($filename)
+                : null;
+        }
+
         public static function getModules() : array{
             return $_SESSION["origins.modules"] ?? [];
         }
@@ -146,7 +154,9 @@
                 return $object->getFileName();
             } elseif ($object instanceof ReflectionObject) {
                 return $object->getFileName();
-            } elseif (is_object($object)) {
+            } else if(is_string($object)){
+                return $object;
+            }elseif (is_object($object)) {
                 $reflection = new ReflectionObject($object);
                 return $reflection->getFileName();
             }
