@@ -11,7 +11,8 @@
         function getModulePath(): string;
         function getModuleProperty(string $key);
         function getModuleAsJson(): string;
-        function getCallableFileName(): string;
+        function getCallableFilePath(): string;
+        function getCallableFileName(bool $withExtension = true): string;
     }
 
     final class ModuleInfo implements Module{
@@ -72,13 +73,24 @@
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }
 
-        function getCallableFileName(): string{
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-            if (isset($backtrace[1]['file'])) {
-                return $backtrace[1]['file'];
+        function getCallableFilePath(int $depth = 1): string{
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $depth + 1);
+            if (isset($backtrace[$depth]['file'])) {
+                return $backtrace[$depth]['file'];
             }
             return 'unknown';
         }
+
+        function getCallableFileName(bool $withExtension = true): string{
+            $filePath = $this->getCallableFilePath(2);
+            if($withExtension){
+                return basename($filePath);
+            }else{
+                return pathinfo($filePath, PATHINFO_FILENAME);
+            }
+        }
+
+
     }
 
     final class ModuleManager
