@@ -11,6 +11,7 @@
         function getModulePath(): string;
         function getModuleProperty(string $key);
         function getModuleAsJson(): string;
+        function getCallableFileName(): string;
     }
 
     final class ModuleInfo implements Module{
@@ -69,6 +70,14 @@
                 'path' => $this->getModulePath(),
                 'definedProperties' => $this->moduleArray
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+
+        function getCallableFileName(): string{
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            if (isset($backtrace[1]['file'])) {
+                return $backtrace[1]['file'];
+            }
+            return 'unknown';
         }
     }
 
