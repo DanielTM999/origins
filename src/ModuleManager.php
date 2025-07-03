@@ -109,10 +109,12 @@
             }
         }
 
-        public static function getModuleByName(string $moduleName): Module|null{
+        public static function getModuleByName(string $moduleNameTarget): Module|null{
             $modules = $_SESSION["origins.modules"] ?? [];
             foreach ($modules as $moduleName => $data) {
-                if($moduleName == $moduleName) return $data;
+                if($moduleNameTarget === $moduleName) {
+                    return new ModuleInfo($moduleName, $data);
+                };
             }
             return null;
         }
