@@ -202,21 +202,22 @@
         }
 
         private function getBaseDir(): string{
-            if(isset($_ENV["base.dir"])){
-                return $_ENV["base.dir"];
-            }
-            $dirLibrary = __DIR__;
+            // if(isset($_ENV["base.dir"])){
+            //     return $_ENV["base.dir"];
+            // }
+            // $dirLibrary = __DIR__;
 
-            while (strpos($dirLibrary, 'vendor') !== false) {
-                $dirLibrary = dirname($dirLibrary);
-            }
+            // while (strpos($dirLibrary, 'vendor') !== false) {
+            //     $dirLibrary = dirname($dirLibrary);
+            // }
 
-            $dirBase = $dirLibrary;
-            $vendorPos = strpos($dirBase, '\vendor');
-            if ($vendorPos !== false) {
-                $dirBase = substr($dirBase, 0, $vendorPos);
-            }
-            return $dirBase;
+            // $dirBase = $dirLibrary;
+            // $vendorPos = strpos($dirBase, '\vendor');
+            // if ($vendorPos !== false) {
+            //     $dirBase = substr($dirBase, 0, $vendorPos);
+            // }
+            // return $dirBase;
+            return $_SERVER['DOCUMENT_ROOT'];
         }
 
         private function containsClassView($directory) {
