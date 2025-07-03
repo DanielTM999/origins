@@ -119,7 +119,7 @@
             return null;
         }
 
-        public static function getModuleByFile($target): Module|null{
+        public static function getModuleByReference($target): Module|null{
             $filename = self::getFileForObject($target);
             
             return $filename !== false
