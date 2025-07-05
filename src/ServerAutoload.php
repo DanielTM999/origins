@@ -94,13 +94,8 @@
             $this->loadModulesConfigs();
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
-            foreach($this->loadedFiles as $file){
-                try {
-                    require_once $file;
-                } catch (\Throwable $e) {
-                    throw new \Exception("Erro ao carregar o arquivo '$file': possível redefinição de classe já carregada.");
-                }
-            }
+
+            $this->loadWithDependencies($this->loadedFiles);
 
             $classes = get_declared_classes();
             $configurations = [];
@@ -158,6 +153,35 @@
             $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice, $aspects, []);
         }
 
+        private function loadWithDependencies(array $files): void {
+            $pending = $files;
+            $lastCount = -1;
+
+            while (!empty($pending)) {
+                $failed = [];
+
+                foreach ($pending as $file) {
+                    try {
+                        require_once $file;
+                    } catch (\Throwable $e) {
+                        $failed[] = $file;
+                    }
+                }
+
+                if (empty($failed)) {
+                    return; 
+                }
+
+                if (count($failed) === $lastCount) {
+                    throw new \RuntimeException(
+                        "Não foi possível carregar os seguintes arquivos:\n" . implode("\n", $failed)
+                    );
+                }
+
+                $lastCount = count($failed);
+                $pending = $failed;
+            }
+        }
         private function loadElementsByCache($cache){
             if(isset($cache["baseDir"])){
                 $baseDir = $cache["baseDir"];
