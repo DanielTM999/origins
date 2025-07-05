@@ -94,17 +94,7 @@
             $this->loadModulesConfigs();
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
-
-            foreach ($this->loadedFiles as $file) {
-                try {
-                    require_once $file;
-                } catch (\Throwable $e) {
-                    throw new \RuntimeException(
-                        "Não foi possível carregar o arquivo: $file :" . $e->getMessage()
-                    );
-                }
-            }
-
+            $this->loadWithDependencies($this->loadedFiles);
             $classes = get_declared_classes();
             $configurations = [];
             $controllers = [];
@@ -161,33 +151,40 @@
             $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice, $aspects, []);
         }
 
-        private function loadWithDependencies(array $files): void {
-            $pending = $files;
-            $lastCount = -1;
+        function getInterfacesFromFile(string $file): array {
+            $content = file_get_contents($file);
+            $interfaces = [];
 
-            while (!empty($pending)) {
-                $failed = [];
-
-                foreach ($pending as $file) {
-                    try {
-                        require_once $file;
-                    } catch (\Throwable $e) {
-                        $failed[] = $file;
+           if (preg_match('/^\s*(?:final\s+|abstract\s+)?class\s+\w+/mi', $content)) {
+                if (preg_match('/implements\s+([^{\s]+)/i', $content, $matches)) {
+                    $impls = explode(',', $matches[1]);
+                    foreach ($impls as $impl) {
+                        $interfaces[] = trim($impl);
                     }
                 }
+            }
 
-                if (empty($failed)) {
-                    return; 
+            return $interfaces;
+        }
+
+        private function loadWithDependencies(array $files): void {
+            $pending = $files;
+            $interfaceFiles = [];
+
+            foreach ($pending as $file) {
+                $interfaces = $this->getInterfacesFromFile($file);
+                        
+                if (!empty($interfaces)) {
+                    $interfaceFiles[] = $file;
+                    continue; 
                 }
 
-                if (count($failed) === $lastCount) {
-                    throw new \RuntimeException(
-                        "Não foi possível carregar os seguintes arquivos:\n" . implode("\n", $failed)
-                    );
-                }
+                require_once $file;
+            }
 
-                $lastCount = count($failed);
-                $pending = $failed;
+            $interfaceFiles = array_unique($interfaceFiles);
+            foreach ($interfaceFiles as $interfaceFile) {
+                require_once $interfaceFile;
             }
         }
 
