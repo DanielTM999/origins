@@ -95,7 +95,15 @@
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
 
-            $this->loadWithDependencies($this->loadedFiles);
+            foreach ($this->loadedFiles as $file) {
+                try {
+                    require_once $file;
+                } catch (\Throwable $e) {
+                    throw new \RuntimeException(
+                        "Não foi possível carregar o arquivo: $file :" . $e->getMessage()
+                    );
+                }
+            }
 
             $classes = get_declared_classes();
             $configurations = [];
@@ -182,6 +190,7 @@
                 $pending = $failed;
             }
         }
+
         private function loadElementsByCache($cache){
             if(isset($cache["baseDir"])){
                 $baseDir = $cache["baseDir"];
