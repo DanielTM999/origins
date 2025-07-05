@@ -299,6 +299,7 @@
             $this->modules = $this->parseModules($moduleContent);
             if (isset($this->modules['global']) && is_array($this->modules['global'])) {
                 $globalProps = $this->modules['global'];
+                $this->modules["origins.module.global"] = $globalProps;
                 unset($this->modules['global']);
 
                 foreach ($this->modules as &$module) {

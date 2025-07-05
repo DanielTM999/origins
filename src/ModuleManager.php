@@ -135,6 +135,39 @@
             return $_SESSION["origins.modules"] ?? [];
         }
 
+        public static function getGlobalModuleProperty(string $key, array|string $toReplace = "", int $depth = 0){
+            $moduleArray = $_SESSION["origins.modules"]["origins.module.global"] ?? [];
+            if ($depth > 10) {
+                throw new \RuntimeException("Recursion depth exceeded while resolving module property: $key");
+            }
+            $value = $moduleArray[$key] ?? null;
+            if (!is_string($value)) {
+                return $value;
+            }
+
+            $value = preg_replace_callback('/\$\{?env\["([^"\]]+)"\]\}?/', function ($matches) {
+                $envKey = $matches[1];
+                return $_ENV[$envKey] ?? '';
+            }, $value);
+            
+            $value = preg_replace_callback('/\$\{?module\["([^"\]]+)"\]\}?/', function ($matches) use ($depth) {
+                $moduleKey = $matches[1];
+                return self::getGlobalModuleProperty($moduleKey, "", $depth + 1) ?? '';
+            }, $value);
+
+            if (!empty($toReplace)) {
+                if (is_string($toReplace)) {
+                    $value = preg_replace('/\[\?\]/', $toReplace, $value);
+                } elseif (is_array($toReplace)) {
+                    foreach ($toReplace as $replacement) {
+                        $value = preg_replace('/\[\?\]/', $replacement, $value, 1);
+                    }
+                }
+            }
+
+            return $value;
+        }
+
         private static function getStandardModule(array $backtrace): Module|null{
             foreach ($backtrace as $frame) {
                 if (isset($frame['file'])) {
