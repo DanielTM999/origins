@@ -94,7 +94,7 @@
             $this->loadModulesConfigs();
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
-            $this->loadWithDependencies($this->loadedFiles);
+            $this->loadedFiles = $this->loadWithDependencies($this->loadedFiles);
             $classes = get_declared_classes();
             $configurations = [];
             $controllers = [];
@@ -167,9 +167,10 @@
             return $interfaces;
         }
 
-        private function loadWithDependencies(array $files): void {
+        private function loadWithDependencies(array $files): array {
             $pending = $files;
             $interfaceFiles = [];
+            $inOrderFiles = [];
 
             foreach ($pending as $file) {
                 $interfaces = $this->getInterfacesFromFile($file);
@@ -180,12 +181,15 @@
                 }
 
                 require_once $file;
+                $inOrderFiles[] = $file;
             }
 
             $interfaceFiles = array_unique($interfaceFiles);
             foreach ($interfaceFiles as $interfaceFile) {
                 require_once $interfaceFile;
+                $inOrderFiles[] = $interfaceFile;
             }
+            return $inOrderFiles;
         }
 
         private function loadElementsByCache($cache){
