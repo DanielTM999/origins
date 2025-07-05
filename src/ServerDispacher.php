@@ -200,6 +200,27 @@
             $location = "";
             if(isset($args[0])){
                 $location = $args[0];
+
+                if (preg_match('/^\{Module\.(.+)\}$/', $location, $matches)) {
+                    $modulePath = $matches[1];
+                    $parts = explode('.', $modulePath);
+
+                    if (($parts[0] ?? "") === 'current') {
+                        $module = ModuleManager::getModuleByReference($reflect);
+                    } else {
+                        $module = ModuleManager::getModuleByName($parts[0] ?? "");
+                        if ($module === null) {
+                            $module = ModuleManager::getModuleByReference($reflect);
+                        }
+                    }
+
+                    if ($module !== null) {
+                        $locationTarget = $module->getModuleProperty($parts[1] ?? "");
+                        $location = $locationTarget ?? "";
+                    }
+                }
+
+
                 if (!str_starts_with($location, '/')) {
                     $location = '/' . $location;
                 }
