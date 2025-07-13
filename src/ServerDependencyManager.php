@@ -290,7 +290,7 @@
 
             if(AnnotationsUtils::isAnnotationPresent($reflect, Qualifier::class)){
                 $args = AnnotationsUtils::getAnnotationArgs($reflect, Qualifier::class);
-                return (!empty($args) && isset($args['qualifier'])) ? $args['qualifier'] : 'default';
+                return (!empty($args) && isset($args[0])) ? $args[0] : 'default';
             }
 
             return "default";
