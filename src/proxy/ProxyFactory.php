@@ -4,7 +4,6 @@
     use Daniel\Origins\Annotations\DisableProxy;
     use Daniel\Origins\AnnotationsUtils;
     use Daniel\Origins\Aop\Aspect;
-use Daniel\Origins\Log;
     use ReflectionClass;
 
     final class ProxyFactory{
