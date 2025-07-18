@@ -206,7 +206,8 @@ class ServerDispacher extends Dispacher
         if (isset($args[0])) {
             $location = $args[0];
 
-            if (preg_match('/^\{Module\.(.+)\}$/', $location, $matches)) {
+
+            $location = preg_replace_callback('/\{Module\.([^}]+)\}/', function ($matches) use ($reflect) {
                 $modulePath = $matches[1];
                 $parts = explode('.', $modulePath);
 
@@ -220,10 +221,11 @@ class ServerDispacher extends Dispacher
                 }
 
                 if ($module !== null) {
-                    $locationTarget = $module->getModuleProperty($parts[1] ?? "");
-                    $location = $locationTarget ?? "";
+                    return $module->getModuleProperty($parts[1] ?? "") ?? "";
                 }
-            }
+
+                return "";
+            }, $location);
 
 
             if (!str_starts_with($location, '/')) {
