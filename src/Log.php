@@ -61,6 +61,8 @@ use RuntimeException;
         private static function serializateMessage($message){
             if(!isset($message)){
                 return "null";
+            }elseif (is_bool($message)) {
+                return $message ? 'true' : 'false';
             }else if (is_array($message)) {
                 return json_encode($message); 
             } elseif (is_object($message)) {

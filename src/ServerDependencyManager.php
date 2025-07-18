@@ -329,7 +329,8 @@
         }
 
         private function createProxy(object $realInstance): object{
-            $proxyFactory = new ProxyFactory($realInstance, $this->inteceptor);
+            $enviroment = $_ENV["enviroment"];
+            $proxyFactory = new ProxyFactory($realInstance, $this->inteceptor, ($enviroment === "prod" || $enviroment === "production"));
             return $proxyFactory->createProxy();
         }
 

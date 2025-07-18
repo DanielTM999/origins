@@ -4,6 +4,7 @@
     use Daniel\Origins\Annotations\DisableProxy;
     use Daniel\Origins\AnnotationsUtils;
     use Daniel\Origins\Aop\Aspect;
+use Daniel\Origins\Log;
     use ReflectionClass;
 
     final class ProxyFactory{
@@ -12,24 +13,44 @@
         private readonly ObjectInterceptor $interceptor;
         private readonly string $targetClass;
         private readonly ReflectionClass $reflection;
+        private bool $enableCache = true; 
+        private string $cacheDir = __DIR__ . '/../../runtime/proxies';
 
-        public function __construct(object $target, ObjectInterceptor $interceptor)
+        public function __construct(object $target, ObjectInterceptor $interceptor, bool $enableCache = true)
         {
             $this->target = $target;
             $this->interceptor = $interceptor;
             $this->targetClass = get_class($target);
             $this->reflection = new \ReflectionClass($this->targetClass);
+            $this->enableCache = $enableCache;
+        }
+
+        public function enableCache(bool $enable): void {
+            $this->enableCache = $enable;
         }
 
         public function createProxy(): object{
             if (!$this->allowProxy()) return $this->target;
 
-            $proxyClassName = '__Proxy_' . str_replace('\\', '_', $this->targetClass) . md5(microtime(true));
+            $proxyClassName = $this->createProxyName();
+            $proxyFilePath = "{$this->cacheDir}/{$proxyClassName}.php";
 
-            if (!class_exists($proxyClassName)) {
-                $code = $this->createExtensiveClass($proxyClassName);
-                eval($code);
+            if ($this->enableCache && file_exists($proxyFilePath)) {
+                require_once $proxyFilePath;
+            } else {
+                if ($this->enableCache) {
+                    if (!class_exists($proxyClassName, false)) {
+                        $this->generateProxyFile($proxyClassName, $proxyFilePath);
+                        require_once $proxyFilePath;
+                        if (function_exists('opcache_compile_file')) {
+                            @opcache_compile_file($proxyFilePath);
+                        }
+                    }
+                } else {
+                    eval($this->createExtensiveClass($proxyClassName));
+                }
             }
+
 
             $args = $this->getContructorArgs();
             $instance = new $proxyClassName(...$args);
@@ -272,14 +293,36 @@
             return $args;
         }
 
-        function copyProperties(object &$source): void {
-            foreach ($this->reflection->getProperties() as $property) {
-                $property->setAccessible(true);
-                $value = $property->getValue($this->target);
-                $property->setValue($source, $value);
+        private function copyProperties(object $instance): void {
+            $target = $this->target;
+            $class = get_class($target);
+
+            while ($class) {
+                \Closure::bind(function () use ($target) {
+                    foreach (get_object_vars($target) as $key => $value) {
+                        $this->$key = $value;
+                    }
+                }, $instance, $class)();
+                
+                $class = get_parent_class($class);
+            }
+        }
+
+        private function createProxyName(): string{
+            $proxyShortName = '__Proxy_' . str_replace('\\', '_', $this->targetClass);
+            $proxyHash = md5($this->targetClass);
+            return $proxyShortName . '_' . $proxyHash;
+        }
+
+        private function generateProxyFile(string $proxyClassName, string $filePath): void {
+            if (!is_dir($this->cacheDir)) {
+                mkdir($this->cacheDir, 0777, true);
             }
 
+            $code = $this->createExtensiveClass($proxyClassName);
+            file_put_contents($filePath, "<?php\n\n" . $code);
         }
+
         
     }
 
