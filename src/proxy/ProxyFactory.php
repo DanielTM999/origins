@@ -53,7 +53,7 @@
 
             $args = $this->getContructorArgs();
             $instance = new $proxyClassName(...$args);
-            $this->copyProperties($instance);
+            //$this->copyProperties($instance);
             return $instance;
         }
 
