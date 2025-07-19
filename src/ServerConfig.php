@@ -42,14 +42,10 @@ use Override;
             
 
             usort(self::$config, function($a, $b){
-                $attributesA = $a->getAttributes(FilterPriority::class);
-                $attributesB = $b->getAttributes(FilterPriority::class);
-
-                $priorityAArgs0 = isset($attributesA[0]) ? $attributesA[0]->getArguments() : [0];
-                $priorityBArgs0 = isset($attributesB[0]) ? $attributesB[0]->getArguments() : [0];
-                $priorityA = isset($priorityAArgs0[0]) ? $priorityAArgs0[0] : 0;
-                $priorityB = isset($priorityBArgs0[0]) ? $priorityBArgs0[0] : 0;
-
+                $priorityAArgs = AnnotationsUtils::getAnnotationArgs($a, FilterPriority::class) ?? [0];
+                $priorityBArgs = AnnotationsUtils::getAnnotationArgs($b, FilterPriority::class) ?? [0];
+                $priorityA = $priorityAArgs[0] ?? 0;
+                $priorityB = $priorityBArgs[0] ?? 0;
                 return $priorityB <=> $priorityA;
             });
             

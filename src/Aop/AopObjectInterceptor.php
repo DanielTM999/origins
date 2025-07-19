@@ -1,14 +1,13 @@
 <?php
     namespace Daniel\Origins\Aop;
 
-    use Daniel\Origins\DependencyManager;
-    use Daniel\Origins\FilterPriority;
-    use Daniel\Origins\Log;
+    use Daniel\Origins\Annotations\FilterPriority;
+use Daniel\Origins\AnnotationsUtils;
+use Daniel\Origins\DependencyManager;
     use Daniel\Origins\proxy\ObjectInterceptor;
     use Override;
     use ReflectionClass;
     use ReflectionMethod;
-    use ReflectionObject;
 
     final class AopObjectInterceptor extends ObjectInterceptor
     {
@@ -55,14 +54,10 @@
                     self::$aspectsClass[] = $reflect;
                 }
                 usort(self::$aspectsClass, function($a, $b){
-                    $attributesA = $a->getAttributes(FilterPriority::class);
-                    $attributesB = $b->getAttributes(FilterPriority::class);
-
-                    $priorityAArgs0 = isset($attributesA[0]) ? $attributesA[0]->getArguments() : [0];
-                    $priorityBArgs0 = isset($attributesB[0]) ? $attributesB[0]->getArguments() : [0];
-                    $priorityA = isset($priorityAArgs0[0]) ? $priorityAArgs0[0] : 0;
-                    $priorityB = isset($priorityBArgs0[0]) ? $priorityBArgs0[0] : 0;
-
+                    $priorityAArgs = AnnotationsUtils::getAnnotationArgs($a, FilterPriority::class) ?? [0];
+                    $priorityBArgs = AnnotationsUtils::getAnnotationArgs($b, FilterPriority::class) ?? [0];
+                    $priorityA = $priorityAArgs[0] ?? 0;
+                    $priorityB = $priorityBArgs[0] ?? 0;
                     return $priorityB <=> $priorityA;
                 });
                 self::$load = true;
