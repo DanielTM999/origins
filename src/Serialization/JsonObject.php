@@ -7,12 +7,18 @@
     final class JsonObject
     {
 
-        public static function serialize(object $object, int $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) {
-            $array = self::objectToArray($object);
-            return json_encode($array, $flags);
+        private readonly int $flags;
+
+        public function __construct(int $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) {
+            $this->flags = $flags;
         }
 
-        public static function unserialize(array|string $json, string|object $target){
+        public function serialize(object $object) {
+            $array = $this->objectToArray($object);
+            return json_encode($array, $this->flags);
+        }
+
+        public function unserialize(array|string $json, string|object $target){
             if (is_string($json)) {
                 $json = json_decode($json, true);
             }
@@ -41,7 +47,7 @@
                     $type = $prop->getType();
                     if ($type && !$type->isBuiltin() && is_array($value)) {
                         $className = $type->getName();
-                        $value = self::unserialize($value, $className);
+                        $value = $this->unserialize($value, $className);
                     }
 
                     $prop->setValue($object, $value);
@@ -52,7 +58,7 @@
 
         }
 
-        private static function objectToArray(object $object): array{
+        private function objectToArray(object $object): array{
             $ref = new ReflectionObject($object);
             $props = $ref->getProperties();
             $result = [];
@@ -63,12 +69,12 @@
                 $value = $prop->getValue($object);
 
                 if (is_object($value)) {
-                    $value = self::objectToArray($value);
+                    $value = $this->objectToArray($value);
                 }
 
                 if (is_array($value)) {
                     $value = array_map(function ($item) {
-                        return is_object($item) ? self::objectToArray($item) : $item;
+                        return is_object($item) ? $this->objectToArray($item) : $item;
                     }, $value);
                 }
 
@@ -76,6 +82,15 @@
             }
 
             return $result;
+        }
+
+
+        public static function defaultSerialization(object $object, int $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) {
+            return (new self($flags))->serialize($object, $flags);
+        }
+
+        public static function defaultUnserialization(array|string $json, string|object $target){
+            return (new self())->unserialize($json, $target);
         }
         
     }

@@ -67,7 +67,7 @@ use RuntimeException;
                 return json_encode($message); 
             } elseif (is_object($message)) {
                 try{
-                    return JsonObject::serialize($message);
+                    return JsonObject::defaultSerialization($message);
                 }catch(\Exception $e){
                     if (self::isSerializable($message)) {
                         return serialize($message);
