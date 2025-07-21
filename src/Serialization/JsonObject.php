@@ -2,6 +2,8 @@
 
     namespace Daniel\Origins\Serialization;
 
+    use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
+    use Daniel\Origins\AnnotationsUtils;
     use ReflectionObject;
 
     final class JsonObject
@@ -62,11 +64,16 @@
             $ref = new ReflectionObject($object);
             $props = $ref->getProperties();
             $result = [];
+            $ignoreNulls = AnnotationsUtils::isAnnotationPresent($ref, IgnoreNulls::class);
 
             foreach ($props as $prop) {
                 $prop->setAccessible(true);
                 $name = $prop->getName();
                 $value = $prop->getValue($object);
+
+                if ($ignoreNulls && $value === null) {
+                    continue;
+                }
 
                 if (is_object($value)) {
                     $value = $this->objectToArray($value);
