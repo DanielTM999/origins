@@ -69,7 +69,6 @@
             foreach ($props as $prop) {
                 $prop->setAccessible(true);
                 $name = $prop->getName();
-                $value = $prop->getValue($object);
 
                 if (!$prop->isInitialized($object)) {
                     if ($ignoreNulls) {
