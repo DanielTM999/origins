@@ -71,6 +71,15 @@
                 $name = $prop->getName();
                 $value = $prop->getValue($object);
 
+                if (!$prop->isInitialized($object)) {
+                    if ($ignoreNulls) {
+                        continue;
+                    }
+                    $value = null;
+                } else {
+                    $value = $prop->getValue($object);
+                }
+
                 if ($ignoreNulls && $value === null) {
                     continue;
                 }
