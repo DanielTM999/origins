@@ -17,6 +17,9 @@ use Daniel\Origins\Annotations\Put;
 use Daniel\Origins\Annotations\Delete;
 use Daniel\Origins\Annotations\FilterPriority;
 use Daniel\Origins\Annotations\Patch;
+use Daniel\Origins\Annotations\RequestBody;
+use Daniel\Origins\Serialization\JsonObject;
+use ReflectionParameter;
 
 class ServerDispacher extends Dispacher
 {
@@ -430,7 +433,7 @@ class ServerDispacher extends Dispacher
                                 $args[] = ModuleManager::getCurrentModule($realMethod);
                                 break;
                             default:
-                                $args[] = null;
+                                $args[] = $this->getRequestBodyOrDefault($param, $paramNameTypeName, $req);
                                 break;
                         }
                     } else {
@@ -600,5 +603,16 @@ class ServerDispacher extends Dispacher
             return null;
         }
         return $data;
+    }
+
+    private function getRequestBodyOrDefault(ReflectionParameter $param, string $className, Request $req): object| null{
+        $anotationPresent = AnnotationsUtils::isAnnotationPresent($param, RequestBody::class);
+
+        if($anotationPresent){
+            $body =  $req->getBody() ?? [];
+            return JsonObject::defaultUnserialization($body, $className);
+        }else{
+            return null;
+        }
     }
 }

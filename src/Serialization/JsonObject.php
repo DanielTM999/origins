@@ -3,11 +3,11 @@
     namespace Daniel\Origins\Serialization;
 
     use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
-use Daniel\Origins\Annotations\Serialization\SerializationName;
-use Daniel\Origins\AnnotationsUtils;
+    use Daniel\Origins\Annotations\Serialization\SerializationName;
+    use Daniel\Origins\AnnotationsUtils;
     use ReflectionObject;
 
-    final class JsonObject
+    class JsonObject
     {
 
         private readonly int $flags;
