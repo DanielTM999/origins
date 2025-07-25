@@ -416,7 +416,7 @@ class ServerDispacher extends Dispacher
         $args = [];
 
         try {
-            $parameters = $method->getParameters();
+            $parameters = $realMethod->getParameters();
             if ($parameters !== null) {
                 foreach ($parameters as $param) {
                     $paramType = $param->getType();
