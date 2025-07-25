@@ -3,7 +3,8 @@
     namespace Daniel\Origins\Serialization;
 
     use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
-    use Daniel\Origins\AnnotationsUtils;
+use Daniel\Origins\Annotations\Serialization\SerializationName;
+use Daniel\Origins\AnnotationsUtils;
     use ReflectionObject;
 
     final class JsonObject
@@ -68,7 +69,6 @@
 
             foreach ($props as $prop) {
                 $prop->setAccessible(true);
-                $name = $prop->getName();
 
                 if (!$prop->isInitialized($object)) {
                     if ($ignoreNulls) {
@@ -92,6 +92,10 @@
                         return is_object($item) ? $this->objectToArray($item) : $item;
                     }, $value);
                 }
+
+                $namePropSerializationAtrubuteArray = AnnotationsUtils::getAnnotationArgs($prop, SerializationName::class) ?? [];
+                $varName = $prop->getName();
+                $name = $namePropSerializationAtrubuteArray[0] ?? $varName;
 
                 $result[$name] = $value;
             }
