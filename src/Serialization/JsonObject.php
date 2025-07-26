@@ -5,7 +5,8 @@
     use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
     use Daniel\Origins\Annotations\Serialization\SerializationName;
     use Daniel\Origins\AnnotationsUtils;
-    use ReflectionObject;
+use Daniel\Origins\Log;
+use ReflectionObject;
 
     class JsonObject
     {
@@ -103,9 +104,7 @@
                     if (empty($value)) {
                         $value = new \stdClass();
                     }
-                }
-
-                if (is_array($value)) {
+                }else if (is_array($value)) {
                     $value = array_map(function ($item) {
                         return is_object($item) ? $this->objectToArray($item) : $item;
                     }, $value);
