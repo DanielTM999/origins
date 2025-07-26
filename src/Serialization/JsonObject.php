@@ -50,7 +50,7 @@ use Daniel\Origins\Annotations\Serialization\SerializationName;
 
                     $type = $prop->getType();
 
-                    if ($type instanceof \ReflectionNamedType && $type->isBuiltin()) {
+                    if ($type instanceof \ReflectionNamedType) {
                         $typeName = $type->getName();
 
                         if ($type->isBuiltin()){
