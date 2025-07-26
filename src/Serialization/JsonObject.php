@@ -3,10 +3,10 @@
     namespace Daniel\Origins\Serialization;
 
     use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
-    use Daniel\Origins\Annotations\Serialization\SerializationName;
+use Daniel\Origins\Annotations\Serialization\ListOf;
+use Daniel\Origins\Annotations\Serialization\SerializationName;
     use Daniel\Origins\AnnotationsUtils;
-use Daniel\Origins\Log;
-use ReflectionObject;
+    use ReflectionObject;
 
     class JsonObject
     {
@@ -53,20 +53,36 @@ use ReflectionObject;
                     if ($type instanceof \ReflectionNamedType && $type->isBuiltin()) {
                         $typeName = $type->getName();
 
-                        if ($value === '') {
-                            $value = null;
-                        } elseif ($typeName === 'int') {
-                            $value = is_numeric($value) ? (int) $value : null;
-                        } elseif ($typeName === 'float') {
-                            $value = is_numeric($value) ? (float) $value : null;
-                        } elseif ($typeName === 'bool') {
-                            $value = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-                        }
-                    }
+                        if ($type->isBuiltin()){
+                            if ($value === '') {
+                                $value = null;
+                            } elseif ($typeName === 'int') {
+                                $value = is_numeric($value) ? (int) $value : null;
+                            } elseif ($typeName === 'float') {
+                                $value = is_numeric($value) ? (float) $value : null;
+                            } elseif ($typeName === 'bool') {
+                                $value = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                            } elseif ($typeName === 'array' && is_array($value)) {
+                                $serialize = AnnotationsUtils::isAnnotationPresent($prop, ListOf::class);
+                                if($serialize){
+                                    $listClassType = AnnotationsUtils::getAnnotationArgs($prop, ListOf::class)[0] ?? [];
+                                
+                                    if (empty($listClassType)) {
+                                        throw new \InvalidArgumentException("A anotação #[ListOf] na propriedade '{$prop->getName()}' precisa informar a classe.");
+                                    }
 
-                    if ($type && !$type->isBuiltin() && is_array($value)) {
-                        $className = $type->getName();
-                        $value = $this->unserialize($value, $className);
+                                    if (!class_exists($listClassType)) {
+                                        throw new \InvalidArgumentException("A classe informada '{$listClassType}' na anotação #[ListOf] da propriedade '{$prop->getName()}' não existe.");
+                                    }
+                                    
+                                    $value = array_map(fn($v) => $this->unserialize($v, $listClassType), $value);
+                                }
+                            }
+                        }else{
+                            if(is_array($value) && class_exists($typeName)) {
+                                $value = $this->unserialize($value, $typeName);
+                            }
+                        }
                     }
 
                     $prop->setValue($object, $value);
