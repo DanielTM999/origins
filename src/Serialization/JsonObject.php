@@ -100,6 +100,9 @@
 
                 if (is_object($value)) {
                     $value = $this->objectToArray($value);
+                    if (empty($value)) {
+                        $value = new \stdClass();
+                    }
                 }
 
                 if (is_array($value)) {
