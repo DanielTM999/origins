@@ -48,6 +48,21 @@
                     $value = $json[$name];
 
                     $type = $prop->getType();
+
+                    if ($type instanceof \ReflectionNamedType && $type->isBuiltin()) {
+                        $typeName = $type->getName();
+
+                        if ($value === '') {
+                            $value = null;
+                        } elseif ($typeName === 'int') {
+                            $value = is_numeric($value) ? (int) $value : null;
+                        } elseif ($typeName === 'float') {
+                            $value = is_numeric($value) ? (float) $value : null;
+                        } elseif ($typeName === 'bool') {
+                            $value = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                        }
+                    }
+
                     if ($type && !$type->isBuiltin() && is_array($value)) {
                         $className = $type->getName();
                         $value = $this->unserialize($value, $className);
