@@ -3,6 +3,7 @@
     namespace Daniel\Origins\Serialization;
 
     use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
+use Daniel\Origins\Annotations\Serialization\IgnoreProperty;
 use Daniel\Origins\Annotations\Serialization\ListOf;
 use Daniel\Origins\Annotations\Serialization\SerializationName;
     use Daniel\Origins\AnnotationsUtils;
@@ -101,6 +102,8 @@ use Daniel\Origins\Annotations\Serialization\SerializationName;
 
             foreach ($props as $prop) {
                 $prop->setAccessible(true);
+
+                if(AnnotationsUtils::isAnnotationPresent($prop, IgnoreProperty::class)) continue;
 
                 if (!$prop->isInitialized($object)) {
                     if ($ignoreNulls) {
