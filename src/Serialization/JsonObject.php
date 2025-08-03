@@ -25,11 +25,13 @@
         }
 
         public function unserialize(array|string $json, string|object $target){
+            $isSimpleArray = false;
             if (is_string($json)) {
                 $json = json_decode($json, true);
+                if($json === null) $isSimpleArray = true;             
             }
-
-            if (!is_array($json)) {
+             
+            if (!is_array($json) && !$isSimpleArray) {
                 throw new \InvalidArgumentException("JSON inválido fornecido.");
             }
 
@@ -85,11 +87,6 @@
                                     if (empty($listClassType)) {
                                         throw new \InvalidArgumentException("A anotação #[ListOf] na propriedade '{$prop->getName()}' precisa informar a classe.");
                                     }
-
-                                    if (!class_exists($listClassType)) {
-                                        throw new \InvalidArgumentException("A classe informada '{$listClassType}' na anotação #[ListOf] da propriedade '{$prop->getName()}' não existe.");
-                                    }
-                                    
                                     $value = array_map(fn($v) => $this->unserialize($v, $listClassType), $value);
                                 }
                             }
