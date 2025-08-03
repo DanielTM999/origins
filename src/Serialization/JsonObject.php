@@ -27,8 +27,13 @@
         public function unserialize(array|string $json, string|object $target){
             $isSimpleArray = false;
             if (is_string($json)) {
+                $temp = $json; 
                 $json = json_decode($json, true);
-                if($json === null) $isSimpleArray = true;             
+
+                if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
+                    $json = $temp;
+                    $isSimpleArray = true;
+                }
             }
              
             if (!is_array($json) && !$isSimpleArray) {
