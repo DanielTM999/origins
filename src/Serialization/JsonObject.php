@@ -3,9 +3,10 @@
     namespace Daniel\Origins\Serialization;
 
     use Daniel\Origins\Annotations\Serialization\IgnoreNulls;
-use Daniel\Origins\Annotations\Serialization\IgnoreProperty;
-use Daniel\Origins\Annotations\Serialization\ListOf;
-use Daniel\Origins\Annotations\Serialization\SerializationName;
+    use Daniel\Origins\Annotations\Serialization\IgnoreProperty;
+    use Daniel\Origins\Annotations\Serialization\ListOf;
+    use Daniel\Origins\Annotations\Serialization\SerializationName;
+    use Daniel\Origins\Annotations\Serialization\Trim;
     use Daniel\Origins\AnnotationsUtils;
     use ReflectionObject;
 
@@ -63,6 +64,10 @@ use Daniel\Origins\Annotations\Serialization\SerializationName;
                                 $value = is_numeric($value) ? (float) $value : null;
                             } elseif ($typeName === 'bool') {
                                 $value = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                            } elseif ($typeName === 'string') {
+                                if (AnnotationsUtils::isAnnotationPresent($prop, Trim::class)){
+                                    $value = trim($value);
+                                }
                             } elseif ($typeName === 'array' && is_array($value)) {
                                 $serialize = AnnotationsUtils::isAnnotationPresent($prop, ListOf::class);
                                 if($serialize){
