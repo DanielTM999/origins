@@ -34,9 +34,18 @@
             }
 
             if (is_string($target)) {
+                if ($this->isBaseType($target)) {
+                    return $this->handleBaseType($target, $json);
+                }
+
+                if ($this->isSimpleConstructableClass($target)) {
+                    return $this->handleSimpleConstructableClass($target, $json);
+                }
+
                 if (!class_exists($target)) {
                     throw new \InvalidArgumentException("Classe '$target' não encontrada.");
                 }
+
                 $object = new $target();
             } else {
                 $object = $target;
@@ -144,6 +153,34 @@
             return $result;
         }
 
+        
+        private function isBaseType(string $type): bool {
+            $baseTypes = ['string', 'int', 'float', 'bool'];
+            return in_array($type, $baseTypes, true);
+        }
+
+        private function handleBaseType(string $type, mixed $json): mixed {
+            return match ($type) {
+                'string' => (string) $json,
+                'int' => is_numeric($json) ? (int) $json : null,
+                'float' => is_numeric($json) ? (float) $json : null,
+                'bool' => filter_var($json, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+                default => null,
+            };
+        }
+
+        private function isSimpleConstructableClass(string $className): bool {
+            $simpleConstructableClasses = [
+                \DateTime::class,
+                \DateTimeImmutable::class,
+                \SimpleXMLElement::class,
+            ];
+            return in_array($className, $simpleConstructableClasses, true);
+        }
+
+        private function handleSimpleConstructableClass(string $className, mixed $json): object {
+            return new $className($json);
+        }
 
         public static function defaultSerialization(object $object, int $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) {
             return (new self($flags))->serialize($object, $flags);
