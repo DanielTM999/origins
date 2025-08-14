@@ -379,12 +379,11 @@ class ServerDispacher extends Dispacher
             if ($parameters !== null) {
                 $result = $method->invokeArgs($entity, $args);
                 $this->setContentType($realMethod);
-                $this->echoResult($result);
             } else {
                 $result = $method->invoke($entity);
                 $this->setContentType($realMethod);
-                $this->echoResult($result);
             }
+            $this->echoResult($result);
         } catch (Exception $e) {
             throw $e;
         }
