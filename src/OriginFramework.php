@@ -18,6 +18,7 @@
             $this->varEnvLoader = $this->getVarEnv();
 
             $this->varEnvLoader->load();
+            
             $this->autoload->load();
             $this->dispacher->map();
             $this->Dmanager->load();

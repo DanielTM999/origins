@@ -5,7 +5,9 @@
     use Daniel\Origins\Annotations\Dependency;
     use Daniel\Origins\Aop\Aspect;
     use Override;
-    use ReflectionClass;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ReflectionClass;
     use RuntimeException;
 
     final class ServerAutoload extends Autoloader{
@@ -91,6 +93,7 @@
         private function loadElements(bool $addCache = true){
             $dirBase = $this->getBaseDir();
             $_ENV["base.dir"] = $dirBase;
+            $this->invalidateOpcache($dirBase);
             $this->loadModulesConfigs();
             $this->autoloadFromDirectory($dirBase);
             $this->loadedFiles = array_reverse($this->loadedFiles);
@@ -401,6 +404,25 @@
             return $modules;
         }
 
+        private function invalidateOpcache($dirBase): void {
+            if (function_exists('opcache_get_status') && opcache_get_status()) {
+                if(isset($_ENV['opcache.invalid']) && $_ENV['opcache.invalid'] === 'true' && function_exists('opcache_invalidate')){
+
+                    $iterator = new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator($dirBase, RecursiveDirectoryIterator::SKIP_DOTS)
+                    );
+
+                    foreach ($iterator as $file) {
+                        /** @var SplFileInfo $file */
+                        if ($file->isFile() && $file->getExtension() === 'php') {
+                            opcache_invalidate($file->getRealPath(), true);
+                        }
+                    }
+
+                    opcache_invalidate(__FILE__, true);
+                }
+            }
+        }
 
     } 
 
