@@ -45,7 +45,7 @@ use ReflectionClass;
                         $ignore = $_ENV["load.ignore"];
                         $ignoreList = explode("@", $ignore);
                         foreach($ignoreList as $v){
-                            $v = str_replace('/', '\\', $v);
+                            $v = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $v);
                             if(strpos($directory, $v) !== false){
                                 $execute = false;
                             }else if(in_array($item, $ignoreList)){
