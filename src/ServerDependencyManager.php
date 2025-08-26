@@ -175,31 +175,38 @@
         private function fillObject(ReflectionClass|null &$reflect = null, object &$instance): void{
             if($reflect == null) $reflect = new ReflectionClass($instance);
 
-            $vars = $reflect->getProperties();
-            foreach($vars as $var){
 
-                $type = $var->getType();
-                $name = null;
-                if ($type instanceof \ReflectionNamedType) {
-                    $name = $type->getName();
-                } elseif ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
-                    $types = $type->getTypes();
-                    if (!empty($types) && $types[0] instanceof \ReflectionNamedType) {
-                        $name = $types[0]->getName();
+            do {
+
+                $vars = $reflect->getProperties();
+                foreach($vars as $var){
+
+                    $type = $var->getType();
+                    $name = null;
+                    if ($type instanceof \ReflectionNamedType) {
+                        $name = $type->getName();
+                    } elseif ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
+                        $types = $type->getTypes();
+                        if (!empty($types) && $types[0] instanceof \ReflectionNamedType) {
+                            $name = $types[0]->getName();
+                        }
+                    }
+
+                    if ($name === 'PDO') {
+                        $var->setAccessible(false);
+                        continue;
+                    }
+
+                    if(AnnotationsUtils::isAnnotationPresent($var, Inject::class)){
+                        $object = $this->getInternalDependency($var);
+                        $var->setAccessible(true);
+                        $var->setValue($instance, $object);
                     }
                 }
 
-                if ($name === 'PDO') {
-                    $var->setAccessible(false);
-                    continue;
-                }
+                $reflect = $reflect->getParentClass();
+            } while ($reflect !== false);
 
-                if(AnnotationsUtils::isAnnotationPresent($var, Inject::class)){
-                    $object = $this->getInternalDependency($var);
-                    $var->setAccessible(true);
-                    $var->setValue($instance, $object);
-                }
-            }
         }
 
         private function createObjectNoContructors(ReflectionClass &$reflect): object|null{
