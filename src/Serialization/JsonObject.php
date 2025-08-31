@@ -8,6 +8,7 @@
     use Daniel\Origins\Annotations\Serialization\SerializationName;
     use Daniel\Origins\Annotations\Serialization\Trim;
     use Daniel\Origins\AnnotationsUtils;
+    use Daniel\Origins\Log;
     use ReflectionObject;
 
     class JsonObject
@@ -41,6 +42,7 @@
             }
 
             if (is_string($target)) {
+                
                 if ($this->isBaseType($target)) {
                     return $this->handleBaseType($target, $json);
                 }
@@ -67,10 +69,10 @@
                     $value = $json[$name];
 
                     $type = $prop->getType();
-
+                    
                     if ($type instanceof \ReflectionNamedType) {
                         $typeName = $type->getName();
-
+                        
                         if ($type->isBuiltin()){
                             if ($value === '') {
                                 $value = null;
@@ -88,11 +90,20 @@
                                 $serialize = AnnotationsUtils::isAnnotationPresent($prop, ListOf::class);
                                 if($serialize){
                                     $listClassType = AnnotationsUtils::getAnnotationArgs($prop, ListOf::class)[0] ?? [];
-                                
                                     if (empty($listClassType)) {
                                         throw new \InvalidArgumentException("A anotação #[ListOf] na propriedade '{$prop->getName()}' precisa informar a classe.");
                                     }
-                                    $value = array_map(fn($v) => $this->unserialize($v, $listClassType), $value);
+                                    if($this->isBaseType($listClassType)){
+                                        $shortName = strtolower(basename(str_replace('\\', '/', $listClassType)));
+                                        $value = array_map(fn($v) => $this->handleBaseType($shortName, $v), $value);
+                                        foreach ($value as $v) {
+                                            if ($v === null) {
+                                                throw new \InvalidArgumentException("Tipo base inválido para lista: {$listClassType}");
+                                            }
+                                        }
+                                    }else{
+                                        $value = array_map(fn($v) => $this->unserialize($v, $listClassType), $value);
+                                    }
                                 }
                             }
                         }else{
@@ -158,7 +169,8 @@
         
         private function isBaseType(string $type): bool {
             $baseTypes = ['string', 'int', 'float', 'bool'];
-            return in_array($type, $baseTypes, true);
+            $shortName = strtolower(basename(str_replace('\\', '/', $type)));
+            return in_array($shortName, $baseTypes, true);
         }
 
         private function handleBaseType(string $type, mixed $json): mixed {
