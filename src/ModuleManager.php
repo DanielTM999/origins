@@ -23,6 +23,14 @@
         function __construct($realName, $moduleArray){
             $this->moduleArray = $moduleArray;
             $this->realName = $realName;
+
+            if (empty($this->moduleArray["name"])) {
+                $this->moduleArray["name"] = $this->realName;
+            }
+
+            if (empty($this->moduleArray["modulePath"])) {
+                $this->moduleArray["modulePath"] = "detached Module";
+            }
         }
 
         function getModuleName(): string {
