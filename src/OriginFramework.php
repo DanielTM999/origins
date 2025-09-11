@@ -34,7 +34,9 @@
         }
 
         public function run(){
+            ob_start();
             $this->dispacher->dispach($this->Dmanager);
+            ob_end_flush();
         }
 
         protected function getConfigOnInit() : Config{
