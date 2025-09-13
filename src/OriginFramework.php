@@ -11,6 +11,11 @@
 
         public function __construct()
         {
+            ob_start();
+
+            if(session_status() != PHP_SESSION_ACTIVE){
+                session_start();
+            }
             $this->dispacher = $this->getDispacher();
             $this->autoload = $this->getAutoload();
             $this->Dmanager = $this->getDependecyManager();
@@ -34,7 +39,6 @@
         }
 
         public function run(){
-            ob_start();
             $this->dispacher->dispach($this->Dmanager);
             ob_end_flush();
         }

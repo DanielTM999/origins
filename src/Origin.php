@@ -1,10 +1,6 @@
 <?php
     namespace Daniel\Origins;
 
-    if(session_status() != PHP_SESSION_ACTIVE){
-        session_start();
-    }
-
     abstract class Origin{
         public static bool $runBytask = false;
         protected static Origin $instance;
