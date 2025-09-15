@@ -15,6 +15,11 @@
             }
             return self::$instance;
         }
+
+        public static function getRuntimeDir(): string{
+            $baseDir = $_ENV["base.dir"];
+            return "$baseDir".DIRECTORY_SEPARATOR."runtime".DIRECTORY_SEPARATOR;
+        }
      
         public static function initializeTestEnvaroment(): Origin{
             return new OriginFrameworkTest();

@@ -4,7 +4,8 @@
     use Daniel\Origins\Annotations\DisableProxy;
     use Daniel\Origins\AnnotationsUtils;
     use Daniel\Origins\Aop\Aspect;
-    use ReflectionClass;
+use Daniel\Origins\Origin;
+use ReflectionClass;
 
     final class ProxyFactory{
 
@@ -13,7 +14,7 @@
         private readonly string $targetClass;
         private readonly ReflectionClass $reflection;
         private bool $enableCache = true; 
-        private string $cacheDir = __DIR__ . '/../../runtime/proxies';
+        private readonly string $cacheDir;
 
         public function __construct(object $target, ObjectInterceptor $interceptor, bool $enableCache = true)
         {
@@ -22,6 +23,7 @@
             $this->targetClass = get_class($target);
             $this->reflection = new \ReflectionClass($this->targetClass);
             $this->enableCache = $enableCache;
+            $this->cacheDir = Origin::getRuntimeDir() . 'proxies';
         }
 
         public function enableCache(bool $enable): void {
