@@ -18,11 +18,9 @@ use Override;
 
         #[Override]
         public function ConfigOnInit() : void{
-
-
             if(isset($_SESSION["origins.initializers"])){
                 $classes = $_SESSION["origins.initializers"] ?? [];
-                foreach ($classes as $class){
+                foreach ($classes as $class){                
                     self::$config[] = new ReflectionClass($class);
                 }
             }else{

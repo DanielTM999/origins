@@ -42,47 +42,42 @@ final class ServerAutoload extends Autoloader
     private function autoloadFromDirectory($directory)
     {
         $items = scandir($directory);
+        $runtimeDir = preg_quote(Origin::getRuntimeDir(), '#');
 
         foreach ($items as $item) {
             try {
-                $execute = true;
+                if ($item === '.' || $item === '..') continue;
+
                 if (isset($_ENV["load.ignore"])) {
-                    $ignore = $_ENV["load.ignore"];
-                    $ignoreList = explode("@", $ignore);
+                    $ignoreList = explode("@", $_ENV["load.ignore"]);
                     foreach ($ignoreList as $v) {
                         $v = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $v);
-                        if (strpos($directory, $v) !== false) {
-                            $execute = false;
-                        } else if (in_array($item, $ignoreList)) {
-                            $execute = false;
+                        if (strpos($directory, $v) !== false || in_array($item, $ignoreList)) {
+                            continue 2;
                         }
                     }
                 }
 
-                if (preg_match('#composer|git|autoload|test|danieltm[/\\\\]origins|http-security[/\\\\]vendor#', $directory)) {
-                    $execute = false;
+                if (preg_match("#composer|git|autoload|test|danieltm[/\\\\]origins|http-security[/\\\\]vendor|$runtimeDir#", $directory)) {
+                    continue;
                 }
 
-                if ($item === '.' || $item === '..') {
-                    $execute = false;
-                }
+                $path = $directory . DIRECTORY_SEPARATOR . $item;
 
-                if ($execute) {
-                    $path = $directory . DIRECTORY_SEPARATOR . $item;
-                    if (is_dir($path)) {
-                        if (isset($this->modules[$item])) {
-                            $this->modules[$item]['modulePath'] = $path;
-                        }
-                        $this->autoloadFromDirectory($path);
-                    } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php' && !($this->containsClassView($path))) {
-                        $this->requireOnce($path);
+                if (is_dir($path)) {
+                    if (isset($this->modules[$item])) {
+                        $this->modules[$item]['modulePath'] = $path;
                     }
+                    $this->autoloadFromDirectory($path);
+                } elseif (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php' && !$this->containsClassView($path)) {
+                    $this->requireOnce($path);
                 }
             } catch (\Throwable $th) {
                 echo $th->getMessage();
             }
         }
     }
+
 
     private function requireOnce($file)
     {
@@ -131,13 +126,13 @@ final class ServerAutoload extends Autoloader
                 $name = $attr->getName();
                 if ($name === Controller::class) {
                     $controllers[] = $class;
-                }else if ($name === Dependency::class) {
+                } else if ($name === Dependency::class) {
                     $dependecies[] = $class;
-                }else{
+                } else {
                     if (is_subclass_of($name, Scannable::class, true) || $name === Scannable::class) {
                         $instance = $attr->newInstance();
                         $scannableName = $instance->name;
-                        $scannables[$scannableName] = $class;
+                        $scannables[$scannableName][] = $class;
                     }
                 }
             }
@@ -191,7 +186,7 @@ final class ServerAutoload extends Autoloader
 
     private function loadWithDependencies(array $files): array
     {
-       $pending = $files;
+        $pending = $files;
         $specialFiles = [];
         $inOrderFiles = [];
 
@@ -240,6 +235,7 @@ final class ServerAutoload extends Autoloader
             $middlewares = null;
             $aspects = null;
             $controllerAdvice = null;
+            $scannables = [];
             $routes = [];
 
             $loaders = $cache["loaders"] ?? null;
@@ -249,12 +245,13 @@ final class ServerAutoload extends Autoloader
                 $dependecies = $loaders["dependecies"] ?? null;
                 $controllers = $loaders["controllers"] ?? null;
                 $middlewares = $loaders["middlewares"] ?? null;
+                $scannables = $loaders["scannables"] ?? [];
                 $aspects = $loaders["aspects"] ?? null;
                 $controllerAdvice = $loaders["controllerAdvice"] ?? null;
                 $routes = $loaders["routes"] ?? [];
             }
 
-            $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice, $aspects, $routes);
+            $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice, $aspects, $scannables, $routes);
         } else {
             $this->loadElements();
         }
