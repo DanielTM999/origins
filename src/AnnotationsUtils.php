@@ -39,7 +39,7 @@
             return $attributes[0];
         }
 
-        public static function getAnnotations(ReflectionProperty|ReflectionClass|ReflectionMethod|ReflectionParameter|ReflectionObject $target, string $annotationClassName): array {
+        public static function getAnnotations(ReflectionProperty|ReflectionClass|ReflectionMethod|ReflectionParameter|ReflectionObject $target, string|null $annotationClassName = null): array {
             return $target->getAttributes($annotationClassName);
         }
 

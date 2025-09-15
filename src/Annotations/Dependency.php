@@ -8,7 +8,7 @@
     class Dependency{
         public function __construct(public bool $singleton = false)
         {
-            
+           
         }
     }
 

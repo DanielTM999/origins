@@ -4,6 +4,7 @@ namespace Daniel\Origins;
 
 use Daniel\Origins\Annotations\Controller;
 use Daniel\Origins\Annotations\Dependency;
+use Daniel\Origins\Annotations\Scannable;
 use Daniel\Origins\Aop\Aspect;
 use Override;
 use RecursiveDirectoryIterator;
@@ -109,33 +110,36 @@ final class ServerAutoload extends Autoloader
         $dependecies = [];
         $middlewares = [];
         $aspects = [];
+        $scannables = [];
         $controllerAdvice = "";
         foreach ($classes as $class) {
             $reflect = new ReflectionClass($class);
-            $parentClass = $reflect->getParentClass();
-            $atributeController = $reflect->getAttributes(Controller::class);
-            $atrbuteDependency = $reflect->getAttributes(Dependency::class);
+            $anotations = AnnotationsUtils::getAnnotations($reflect);
 
-            if ($parentClass !== false) {
-                $parentClassName = $parentClass->getName();
-                if ($parentClassName === OnInit::class) {
-                    $configurations[] = $class;
-                    $dependecies[] = $class;
-                } else if ($parentClassName === ControllerAdvice::class) {
-                    $controllerAdvice = $class;
-                } else if ($parentClassName === Middleware::class) {
-                    $middlewares[] = $class;
-                } else if ($parentClassName === Aspect::class) {
-                    $aspects[] = $class;
-                }
-            }
-
-            if (isset($atributeController) && !empty($atributeController)) {
-                $controllers[] = $class;
-            }
-
-            if (isset($atrbuteDependency) && !empty($atrbuteDependency)) {
+            if ($reflect->isSubclassOf(OnInit::class)) {
+                $configurations[] = $class;
                 $dependecies[] = $class;
+            } elseif ($reflect->isSubclassOf(ControllerAdvice::class)) {
+                $controllerAdvice = $class;
+            } elseif ($reflect->isSubclassOf(Middleware::class)) {
+                $middlewares[] = $class;
+            } elseif ($reflect->isSubclassOf(Aspect::class)) {
+                $aspects[] = $class;
+            }
+
+            foreach ($anotations as $attr) {
+                $name = $attr->getName();
+                if ($name === Controller::class) {
+                    $controllers[] = $class;
+                }else if ($name === Dependency::class) {
+                    $dependecies[] = $class;
+                }else{
+                    if (is_subclass_of($name, Scannable::class, true) || $name === Scannable::class) {
+                        $instance = $attr->newInstance();
+                        $scannableName = $instance->name;
+                        $scannables[$scannableName] = $class;
+                    }
+                }
             }
         }
 
@@ -151,11 +155,12 @@ final class ServerAutoload extends Autoloader
                     "controllers" => $controllers,
                     "dependecies" => $dependecies,
                     "controllerAdvice" => $controllerAdvice,
+                    "scannables" => $scannables,
                     "routes" => []
                 ],
             ]);
         }
-        $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice, $aspects, []);
+        $this->setSessionsCash($dependecies, $controllers, $configurations, $middlewares, $controllerAdvice, $aspects, $scannables, []);
     }
 
     function getInterfacesAndParentsFromFile(string $file): array
@@ -319,7 +324,7 @@ final class ServerAutoload extends Autoloader
         file_put_contents(self::$metaDadosPath, $jsonData);
     }
 
-    private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice, $aspects, $routes = [])
+    private function setSessionsCash($dependecies, $controllers, $initializers, $middlewares, $controllerAdvice, $aspects, $scannables, $routes = [])
     {
         $controllerAdvice = ($controllerAdvice === "") ? null : $controllerAdvice;
         $_SESSION["origins.dependencys"] = $dependecies;
@@ -330,6 +335,7 @@ final class ServerAutoload extends Autoloader
         $_SESSION["origins.files"] = $this->loadedFiles;
         $_SESSION["origins.aspects"] = $aspects;
         $_SESSION["origins.modules"] = $this->modules;
+        $_SESSION["origins.scannables"] = $scannables;
         $_SESSION["origins.loaders"] = [
             "dependencys" => $dependecies,
             "controllers" => $controllers,
