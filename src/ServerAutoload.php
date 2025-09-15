@@ -148,7 +148,7 @@ final class ServerAutoload extends Autoloader
                 "baseDir" => $dirBase,
                 "loadedFiles" => $this->loadedFiles,
                 "modules" => $this->modules,
-                "configurations" => [
+                "loaders" => [
                     "initializers" => $configurations,
                     "middlewares" => $middlewares,
                     "aspects" => $aspects,
@@ -242,16 +242,16 @@ final class ServerAutoload extends Autoloader
             $controllerAdvice = null;
             $routes = [];
 
-            $configurations = $cache["configurations"] ?? null;
+            $loaders = $cache["loaders"] ?? null;
             $this->modules = $cache["modules"] ?? [];
-            if (isset($configurations)) {
-                $intializers = $configurations["initializers"] ?? null;
-                $dependecies = $configurations["dependecies"] ?? null;
-                $controllers = $configurations["controllers"] ?? null;
-                $middlewares = $configurations["middlewares"] ?? null;
-                $aspects = $configurations["aspects"] ?? null;
-                $controllerAdvice = $configurations["controllerAdvice"] ?? null;
-                $routes = $configurations["routes"] ?? [];
+            if (isset($loaders)) {
+                $intializers = $loaders["initializers"] ?? null;
+                $dependecies = $loaders["dependecies"] ?? null;
+                $controllers = $loaders["controllers"] ?? null;
+                $middlewares = $loaders["middlewares"] ?? null;
+                $aspects = $loaders["aspects"] ?? null;
+                $controllerAdvice = $loaders["controllerAdvice"] ?? null;
+                $routes = $loaders["routes"] ?? [];
             }
 
             $this->setSessionsCash($dependecies, $controllers, $intializers, $middlewares, $controllerAdvice, $aspects, $routes);
