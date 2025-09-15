@@ -16,11 +16,11 @@
             return self::$instance;
         }
 
-        public static function getRuntimeDir(): string{
+        public static function getRuntimeDir($create = true): string{
             $baseDir = $_ENV["base.dir"];
             $runtimeDir = "$baseDir".DIRECTORY_SEPARATOR."runtime".DIRECTORY_SEPARATOR;
 
-            if (!is_dir($runtimeDir)) {
+            if ($create && !is_dir($runtimeDir)) {
                 mkdir($runtimeDir, 0777, true);
             }
 
