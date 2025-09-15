@@ -18,7 +18,13 @@
 
         public static function getRuntimeDir(): string{
             $baseDir = $_ENV["base.dir"];
-            return "$baseDir".DIRECTORY_SEPARATOR."runtime".DIRECTORY_SEPARATOR;
+            $runtimeDir = "$baseDir".DIRECTORY_SEPARATOR."runtime".DIRECTORY_SEPARATOR;
+
+            if (!is_dir($runtimeDir)) {
+                mkdir($runtimeDir, 0777, true);
+            }
+
+            return $runtimeDir;
         }
      
         public static function initializeTestEnvaroment(): Origin{
