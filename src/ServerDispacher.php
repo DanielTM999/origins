@@ -582,7 +582,7 @@ class ServerDispacher extends Dispacher
                 'action' => $value->methodClass,
             ];
         }
-        $settings["configurations"]["routes"] = $endpoints;
+        $settings["loaders"]["routes"] = $endpoints;
         $jsonData = json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         file_put_contents(ServerAutoload::$metaDadosPath, $jsonData);
     }
