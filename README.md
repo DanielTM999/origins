@@ -167,14 +167,27 @@ The `Aspect` class provides a way to execute logic before a controller method is
 ```php
 <?php
 
-namespace Daniel\Origins;
+namespace App\Aspects;
 
+use Daniel\Origins\Aop\Aspect;
 use ReflectionMethod;
 
-abstract class Aspect
+class LoggingAspect extends Aspect
 {
-    public function __construct() {}
-    abstract public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs);
+    public function pointCut(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs): bool
+    {
+        return true; // You can put logic here to filter specific methods
+    }
+
+    public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs)
+    {
+        error_log("Executing method: " . $method->getName());
+    }
+
+    public function aspectAfter(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs, mixed &$result)
+    {
+        error_log("Method executed: " . $method->getName());
+    }
 }
 ?>
 ```
@@ -577,16 +590,22 @@ A **Programação Orientada a Aspectos (AOP)** é um recurso avançado do framew
 ```php
 <?php
 
-namespace Daniel\Origins;
+namespace Daniel\Origins\Aop;
 
 use ReflectionMethod;
 
 abstract class Aspect
 {
     public function __construct() {}
+
+    abstract public function pointCut(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs): bool;
+
     abstract public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs);
+
+    abstract public function aspectAfter(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs, mixed &$result);
 }
 ?>
+
 ```
 
 Para criar um aspecto personalizado, estenda a classe `Aspect` e implemente o método `aspectBefore`:
@@ -596,14 +615,24 @@ Para criar um aspecto personalizado, estenda a classe `Aspect` e implemente o m�
 
 namespace App\Aspects;
 
-use Daniel\Origins\Aspect;
+use Daniel\Origins\Aop\Aspect;
 use ReflectionMethod;
 
 class LoggingAspect extends Aspect
 {
+    public function pointCut(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs): bool
+    {
+        return true; // Pode colocar lógica para filtrar métodos específicos
+    }
+
     public function aspectBefore(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs)
     {
         error_log("Executando método: " . $method->getName());
+    }
+
+    public function aspectAfter(object &$controllerEntity, ReflectionMethod &$method, array &$varArgs, mixed &$result)
+    {
+        error_log("Método executado: " . $method->getName());
     }
 }
 ?>
