@@ -2,7 +2,9 @@
 
     namespace Daniel\Origins;
 
-    interface Runnable
+    use Serializable;
+
+    interface Runnable extends Serializable
     {
         public function run();
     }
