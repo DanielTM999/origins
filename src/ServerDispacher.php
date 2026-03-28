@@ -49,7 +49,7 @@ class ServerDispacher extends Dispacher
                     $reflect = new ReflectionClass($controller);
                     $this->mappingControllerClass($reflect);
                 }
-                if (isset($_ENV["enviroment"]) && $_ENV["enviroment"] === "production") {
+                if (isset($_ENV["enviroment"]) && ($_ENV["enviroment"] === "production" || $_ENV["enviroment"] === "prod")) {
                     $this->addRoutesToCash();
                 }
             } else {
