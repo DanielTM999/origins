@@ -240,50 +240,29 @@ class ServerDispacher extends Dispacher
     {
         $attributes = $method->getAttributes();
         $namemethod = $method->getName();
+        $httpMethodMap = [
+            Get::class    => HttpMethod::GET,
+            Post::class   => HttpMethod::POST,
+            Delete::class => HttpMethod::DELETE,
+            Put::class    => HttpMethod::PUT,
+            Patch::class  => HttpMethod::PATCH,
+        ];
         foreach ($attributes as $attribute) {
-            $atrubute_name = $attribute->getName();
-            switch ($atrubute_name) {
-                case Get::class:
-                    $args = $attribute->getArguments();
-                    if (strpos($args[0], "[action]") !== false) {
-                        $args[0] = str_replace("[action]", $namemethod, $args[0]);
-                    }
-                    $path = $pathMapping . $args[0];
-                    $this->addRoute($path, $reflect, $method, HttpMethod::GET);
-                    break;
-                case Post::class:
-                    $args = $attribute->getArguments();
-                    if (strpos($args[0], "[action]") !== false) {
-                        $args[0] = str_replace("[action]", $namemethod, $args[0]);
-                    }
-                    $path = $pathMapping . $args[0];
-                    $this->addRoute($path, $reflect, $method, HttpMethod::POST);
-                    break;
-                case Delete::class:
-                    $args = $attribute->getArguments();
-                    if (strpos($args[0], "[action]") !== false) {
-                        $args[0] = str_replace("[action]", $namemethod, $args[0]);
-                    }
-                    $path = $pathMapping . $args[0];
-                    $this->addRoute($path, $reflect, $method, HttpMethod::DELETE);
-                    break;
-                case Put::class:
-                    $args = $attribute->getArguments();
-                    if (strpos($args[0], "[action]") !== false) {
-                        $args[0] = str_replace("[action]", $namemethod, $args[0]);
-                    }
-                    $path = $pathMapping . $args[0];
-                    $this->addRoute($path, $reflect, $method, HttpMethod::PUT);
-                    break;
-                case Patch::class:
-                    $args = $attribute->getArguments();
-                    if (strpos($args[0], "[action]") !== false) {
-                        $args[0] = str_replace("[action]", $namemethod, $args[0]);
-                    }
-                    $path = $pathMapping . $args[0];
-                    $this->addRoute($path, $reflect, $method, HttpMethod::PATCH);
-                    break;
+            $attributeName = $attribute->getName();
+
+            if (!isset($httpMethodMap[$attributeName])) {
+                continue;
             }
+
+            $args = $attribute->getArguments();
+            $arg  = $args[0] ?? '';
+
+            if (str_contains($arg, '[action]')) {
+                $arg = str_replace('[action]', $namemethod, $arg);
+            }
+
+            $path = $pathMapping . $arg;
+            $this->addRoute($path, $reflect, $method, $httpMethodMap[$attributeName]);
         }
     }
 
