@@ -17,7 +17,9 @@ use Daniel\Origins\Annotations\Put;
 use Daniel\Origins\Annotations\Delete;
 use Daniel\Origins\Annotations\FilterPriority;
 use Daniel\Origins\Annotations\Patch;
+use Daniel\Origins\Annotations\PathVariable;
 use Daniel\Origins\Annotations\RequestBody;
+use Daniel\Origins\Exceptions\RequiredPathVariableException;
 use Daniel\Origins\Serialization\JsonObject;
 use ReflectionParameter;
 
@@ -584,13 +586,110 @@ class ServerDispacher extends Dispacher
     }
 
     private function getRequestBodyOrDefault(ReflectionParameter $param, string $className, Request $req): object| null{
-        $anotationPresent = AnnotationsUtils::isAnnotationPresent($param, RequestBody::class);
+        $requestBodyAnotationPresent = AnnotationsUtils::isAnnotationPresent($param, RequestBody::class);
+        $pathVariableAnotationPresent = AnnotationsUtils::isAnnotationPresent($param, PathVariable::class);
 
-        if($anotationPresent){
-            $body =  $req->getBody() ?? [];
+        if($requestBodyAnotationPresent){
+            $body = $req->getBody() ?? [];
             return JsonObject::defaultUnserialization($body, $className);
-        }else{
+        }
+        
+        if($pathVariableAnotationPresent){
+           return $this->getPathVariableValue($param, $className, $req);
+        }
+        
+        return null;
+    }
+    
+    private function getPathVariableValue(ReflectionParameter $param, string $className, Request $req){
+        $pathVariableAnotationArgs = AnnotationsUtils::getAnnotationArgs($param, PathVariable::class);
+            
+        $annotationName = $pathVariableAnotationArgs[0] ?? null;
+        $required = $pathVariableAnotationArgs[1] ?? true;
+            
+        $name = $annotationName === null || trim($annotationName) === ''
+            ? $param->getName()
+            : $annotationName;
+            
+        $value = $req->getPathVar($name); 
+        
+        if ($required && ($value === null || (is_string($value) && trim($value) === ''))){
+            throw new RequiredPathVariableException("A variável de caminho obrigatória $name não foi informada.");
+        }
+        
+        if ($value === null) {
             return null;
         }
+        $reflectionType = $param->getType();
+        
+        if (!$reflectionType instanceof ReflectionNamedType) {
+            return $value;
+        }
+        
+        $typeName = $reflectionType->getName();
+
+        return match ($typeName) {
+            'string' => (string) $value,
+    
+            'int' => $this->convertPathVariableToInt(
+                $value,
+                $name,
+                $className
+            ),
+    
+            'float' => $this->convertPathVariableToFloat(
+                $value,
+                $name,
+                $className
+            ),
+    
+            'bool' => $this->convertPathVariableToBool(
+                $value,
+                $name,
+                $className
+            ),
+    
+            default => $value,
+        };
+    }
+    
+    private function convertPathVariableToInt(mixed $value, string $name, string $className): int {
+        $convertedValue = filter_var($value, FILTER_VALIDATE_INT);
+    
+        if ($convertedValue === false) {
+            throw new RequiredPathVariableException(
+                "A variável de caminho '{$name}' de {$className} deve ser um número inteiro."
+            );
+        }
+    
+        return $convertedValue;
+    }
+    
+    private function convertPathVariableToFloat(mixed $value, string $name,string $className): float {
+        $convertedValue = filter_var($value, FILTER_VALIDATE_FLOAT);
+    
+        if ($convertedValue === false) {
+            throw new RequiredPathVariableException(
+                "A variável de caminho '{$name}' de {$className} deve ser um número decimal."
+            );
+        }
+    
+        return $convertedValue;
+    }
+
+    private function convertPathVariableToBool(mixed $value, string $name, string $className): bool {
+        $convertedValue = filter_var(
+            $value,
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        );
+    
+        if ($convertedValue === null) {
+            throw new RequiredPathVariableException(
+                "A variável de caminho '{$name}' de {$className} deve ser um booleano."
+            );
+        }
+    
+        return $convertedValue;
     }
 }
