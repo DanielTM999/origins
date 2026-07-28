@@ -248,15 +248,40 @@ class AuthExceptionHandler extends ControllerAdvice
 
 ## Log
 
-The integrated logging system allows recording events in files for monitoring or auditing. Use the `Log` class to record information, warnings, or errors.
+The integrated logging system allows recording events in files for monitoring or auditing. Use the `Log` class to record trace, debug, information, warning, or error messages.
 
 ### Usage Example
 
 ```php
+Log::trace("Entering authentication flow", "app.log");
+Log::debug(["userId" => 42], "app.log");
 Log::info("User successfully logged in", "app.log");
 Log::warning("Unauthorized access attempt", "security.log");
 Log::error("Unexpected error processing request", "errors.log");
+Log::log("A message with an explicitly selected level", "DEBUG", "app.log");
 ```
+
+An exception can be passed as the last argument to `error()`. Its class, message,
+origin, and stack trace will be written after the log message:
+
+```php
+try {
+    processRequest();
+} catch (Throwable $exception) {
+    Log::error("Request processing failed", "errors.log", $exception);
+}
+```
+
+Set the minimum level in the project's `.env` file:
+
+```env
+log.level=DEBUG
+```
+
+The available levels are `TRACE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`, and `OFF`.
+The default is `INFO`. A configured level includes messages at that level and all
+higher-severity messages; for example, `DEBUG` records `DEBUG`, `INFO`, `WARNING`,
+and `ERROR`.
 
 ## View Rendering
 
@@ -677,15 +702,40 @@ class AuthExceptionHandler extends ControllerAdvice
 
 ## Log
 
-O sistema de logging integrado permite registrar eventos em arquivos para monitoramento ou auditoria. Use a classe `Log` para registrar informações, avisos ou erros.
+O sistema de logging integrado permite registrar eventos em arquivos para monitoramento ou auditoria. Use a classe `Log` para registrar mensagens de trace, debug, informação, aviso ou erro.
 
 ### Exemplo de Uso
 
 ```php
+Log::trace("Entrando no fluxo de autenticação", "app.log");
+Log::debug(["usuarioId" => 42], "app.log");
 Log::info("Usuário logado com sucesso", "app.log");
 Log::warning("Tentativa de acesso sem permissão", "security.log");
 Log::error("Erro inesperado ao processar requisição", "errors.log");
+Log::log("Uma mensagem com nível escolhido explicitamente", "DEBUG", "app.log");
 ```
+
+Uma exceção pode ser informada como último argumento de `error()`. A classe,
+mensagem, origem e stack trace serão escritos depois da mensagem do log:
+
+```php
+try {
+    processarRequisicao();
+} catch (Throwable $exception) {
+    Log::error("Falha ao processar a requisição", "errors.log", $exception);
+}
+```
+
+Configure o nível mínimo no arquivo `.env` do projeto:
+
+```env
+log.level=DEBUG
+```
+
+Os níveis disponíveis são `TRACE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` e `OFF`.
+O padrão é `INFO`. O nível configurado inclui as mensagens daquele nível e as de
+maior severidade; por exemplo, `DEBUG` registra `DEBUG`, `INFO`, `WARNING` e
+`ERROR`.
 
 ## Renderização de Views
 
