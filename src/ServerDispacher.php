@@ -585,7 +585,7 @@ class ServerDispacher extends Dispacher
         return $data;
     }
 
-    private function getRequestBodyOrDefault(ReflectionParameter $param, string $className, Request $req): object| null{
+    private function getRequestBodyOrDefault(ReflectionParameter $param, string $className, Request $req): mixed {
         $requestBodyAnotationPresent = AnnotationsUtils::isAnnotationPresent($param, RequestBody::class);
         $pathVariableAnotationPresent = AnnotationsUtils::isAnnotationPresent($param, PathVariable::class);
 
