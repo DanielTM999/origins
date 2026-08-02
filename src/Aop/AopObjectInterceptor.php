@@ -2,8 +2,8 @@
     namespace Daniel\Origins\Aop;
 
     use Daniel\Origins\Annotations\FilterPriority;
-use Daniel\Origins\AnnotationsUtils;
-use Daniel\Origins\DependencyManager;
+    use Daniel\Origins\AnnotationsUtils;
+    use Daniel\Origins\DependencyManager;
     use Daniel\Origins\proxy\ObjectInterceptor;
     use Override;
     use ReflectionClass;
