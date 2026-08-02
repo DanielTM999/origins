@@ -497,9 +497,16 @@ class ServerDispacher extends Dispacher
     private function mapIfNotloaded()
     {
         $exec = (empty($_ENV["enviroment"]) || $_ENV["enviroment"] == 'dev') ? false : true;
-        if (isset($_SESSION["selectedClass"]) && $exec) {
+        $selectedClassesMatchProfile = array_key_exists("origins.selectedClass.profile", $_SESSION)
+            && $_SESSION["origins.selectedClass.profile"] === ProfileMatcher::getActiveProfile();
+
+        if (isset($_SESSION["selectedClass"]) && $exec && $selectedClassesMatchProfile) {
             foreach ($_SESSION["selectedClass"] as $class) {
                 $reflect = new ReflectionClass($class);
+                if (!ProfileMatcher::isActive($reflect)) {
+                    continue;
+                }
+
                 $atribute = $reflect->getAttributes(Controller::class);
 
                 if (isset($atribute) && !empty($atribute)) {
@@ -522,9 +529,14 @@ class ServerDispacher extends Dispacher
             }
         } else {
             unset($_SESSION["selectedClass"]);
+            $_SESSION["origins.selectedClass.profile"] = ProfileMatcher::getActiveProfile();
             $classes = get_declared_classes();
             foreach ($classes as $class) {
                 $reflect = new ReflectionClass($class);
+                if (!ProfileMatcher::isActive($reflect)) {
+                    continue;
+                }
+
                 $atribute = $reflect->getAttributes(Controller::class);
 
                 if (isset($atribute) && !empty($atribute)) {

@@ -18,7 +18,10 @@ use Override;
 
         #[Override]
         public function ConfigOnInit() : void{
-            if(isset($_SESSION["origins.initializers"])){
+            $sessionMatchesProfile = array_key_exists("origins.profile", $_SESSION)
+                && $_SESSION["origins.profile"] === ProfileMatcher::getActiveProfile();
+
+            if(isset($_SESSION["origins.initializers"]) && $sessionMatchesProfile){
                 $classes = $_SESSION["origins.initializers"] ?? [];
                 foreach ($classes as $class){                
                     self::$config[] = new ReflectionClass($class);
@@ -27,6 +30,10 @@ use Override;
                 $classes = get_declared_classes();
                 foreach ($classes as $class){
                     $reflect = new ReflectionClass($class);
+                    if (!ProfileMatcher::isActive($reflect)) {
+                        continue;
+                    }
+
                     $parentClass = $reflect->getParentClass();
                     if ($parentClass !== false) {
                         $parentClassName = $parentClass->getName();

@@ -111,6 +111,10 @@ final class ServerAutoload extends Autoloader
             $reflect = new ReflectionClass($class);
             $anotations = AnnotationsUtils::getAnnotations($reflect);
 
+            if (!ProfileMatcher::isActive($reflect, $anotations)) {
+                continue;
+            }
+
             if ($reflect->isSubclassOf(OnInit::class)) {
                 $configurations[] = $class;
                 $dependecies[] = $class;
@@ -141,6 +145,7 @@ final class ServerAutoload extends Autoloader
         if ($addCache) {
             $this->addCache([
                 "baseDir" => $dirBase,
+                "activeProfile" => ProfileMatcher::getActiveProfile(),
                 "loadedFiles" => $this->loadedFiles,
                 "modules" => $this->modules,
                 "loaders" => [
@@ -312,6 +317,10 @@ final class ServerAutoload extends Autoloader
         if (json_last_error() !== JSON_ERROR_NONE) {
             return null;
         }
+        if (!array_key_exists("activeProfile", $data)
+            || $data["activeProfile"] !== ProfileMatcher::getActiveProfile()) {
+            return null;
+        }
         return $data;
     }
 
@@ -333,6 +342,7 @@ final class ServerAutoload extends Autoloader
         $_SESSION["origins.aspects"] = $aspects;
         $_SESSION["origins.modules"] = $this->modules;
         $_SESSION["origins.scannables"] = $scannables;
+        $_SESSION["origins.profile"] = ProfileMatcher::getActiveProfile();
         $_SESSION["origins.loaders"] = [
             "dependencys" => $dependecies,
             "controllers" => $controllers,

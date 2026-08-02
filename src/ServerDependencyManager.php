@@ -7,6 +7,7 @@
     use Daniel\Origins\Annotations\Qualifier;
     use Daniel\Origins\Annotations\Singleton;
     use Daniel\Origins\Aop\AopObjectInterceptor;
+    use Daniel\Origins\Exceptions\InactiveProfileException;
     use Daniel\Origins\proxy\ObjectInterceptor;
     use Daniel\Origins\proxy\ProxyFactory;
     use Exception;
@@ -30,7 +31,10 @@
 
         #[Override]
         public function load(): void{
-            if(isset($_SESSION["origins.dependencys"])){
+            $sessionMatchesProfile = array_key_exists("origins.profile", $_SESSION)
+                && $_SESSION["origins.profile"] === ProfileMatcher::getActiveProfile();
+
+            if(isset($_SESSION["origins.dependencys"]) && $sessionMatchesProfile){
                 $this->loadBySession();
             }else{
                 $this->loadByRuntime();
@@ -102,6 +106,10 @@
             $classes = get_declared_classes();
             foreach($classes as $c){
                 $reflect = new ReflectionClass($c);
+                if (!ProfileMatcher::isActive($reflect)) {
+                    continue;
+                }
+
                 if(AnnotationsUtils::isAnnotationPresent($reflect, Dependency::class)){
                     if(!$reflect->isInterface()){
                         self::$dependency_creator[] = $reflect;
@@ -141,6 +149,10 @@
         }
 
         private function getInstanceOrActivator(ReflectionClass $reflect): object|null{
+            if (!ProfileMatcher::isActive($reflect)) {
+                throw new InactiveProfileException($reflect->getName(), ProfileMatcher::getActiveProfile());
+            }
+
             $constructor = $reflect->getConstructor();
             $isSingleton = AnnotationsUtils::isAnnotationPresent($reflect, Singleton::class);
             $returnedObject = null;
@@ -229,6 +241,8 @@
                     if (!$type->isBuiltin()) {
                         try{
                             $args[] = $this->getInternalDependency($param);
+                        }catch(InactiveProfileException $e){
+                            throw $e;
                         }catch(\Exception $e){
                             $args[] = null;
                         }

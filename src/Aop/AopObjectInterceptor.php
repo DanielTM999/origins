@@ -74,6 +74,10 @@
                 $classes = get_declared_classes();
                 foreach ($classes as $class){
                     $reflect = new ReflectionClass($class);
+                    if (!\Daniel\Origins\ProfileMatcher::isActive($reflect)) {
+                        continue;
+                    }
+
                     $parentClass = $reflect->getParentClass();
                     if ($parentClass !== false) {
                         $parentClassName = $parentClass->getName();

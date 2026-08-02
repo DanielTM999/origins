@@ -13,6 +13,7 @@
 - [Main Requirements](#main-requirements)
 - [Key Concepts](#key-concepts)
 - [Basic Usage](#basic-usage)
+- [Profile-based Activation](#profile-based-activation)
 - [Middleware](#middleware)
   - [Example](#example)
   - [Middleware Priority](#middleware-priority)
@@ -89,6 +90,29 @@ To create a web application using the Origins framework, follow these steps:
 2. **Define Endpoints**: Use the `Get`, `Post`, `Delete`, and `Put` attributes to map controller methods to API endpoints.
 
 3. **Initialize the Framework**: Create an instance of `Origin` and call the `run()` method to start routing and dispatching requests.
+
+## Profile-based Activation
+
+Use `Profile` to register a managed class only for selected application profiles:
+
+```php
+use Daniel\Origins\Annotations\Dependency;
+use Daniel\Origins\Annotations\Profile;
+
+#[Dependency]
+#[Profile('dev', 'test')]
+class DevelopmentService
+{
+}
+```
+
+Set the active profile in the project's `.env` file:
+
+```env
+app.profile=dev
+```
+
+Classes without `Profile` are always active. An annotated class is inactive when `app.profile` is absent or does not match any value. The rule applies to dependencies, controllers, middlewares, aspects, initializers, controller advice, and scannable classes. Production metadata is automatically rebuilt when the active profile changes.
 
 ## Middleware
 
@@ -464,6 +488,7 @@ echo "Task completed!\n";
 - [Principais Requisitos](#principais-requisitos)
 - [Conceitos Principais](#conceitos-principais)
 - [Uso Básico](#uso-básico)
+- [Ativação por Profile](#ativação-por-profile)
 - [Middleware](#middleware)
   - [Exemplo](#exemplo)
   - [Prioridade de Middleware](#prioridade-de-middleware)
@@ -540,6 +565,29 @@ Para criar um aplicativo web usando o framework Origins, siga estas etapas:
 2. **Defina os Endpoints**: Utilize os atributos `Get`, `Post`, `Delete` e `Put` para mapear os métodos dos Controllers para os endpoints da API.
 
 3. **Inicie o Framework**: Crie uma instância do `Origin` e chame o método `run()` para iniciar o roteamento e despachar as solicitações.
+
+## Ativação por Profile
+
+Use `Profile` para registrar uma classe gerenciada somente nos profiles selecionados:
+
+```php
+use Daniel\Origins\Annotations\Dependency;
+use Daniel\Origins\Annotations\Profile;
+
+#[Dependency]
+#[Profile('dev', 'test')]
+class ServicoDeDesenvolvimento
+{
+}
+```
+
+Defina o profile ativo no arquivo `.env` do projeto:
+
+```env
+app.profile=dev
+```
+
+Classes sem `Profile` ficam sempre ativas. Uma classe anotada fica inativa quando `app.profile` não existe ou não corresponde a nenhum valor. A regra vale para dependências, controllers, middlewares, aspectos, inicializadores, controller advice e classes scannable. O cache de produção é reconstruído automaticamente quando o profile ativo muda.
 
 ## Middleware
 
