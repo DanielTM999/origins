@@ -26,11 +26,6 @@
 
             return $runtimeDir;
         }
-     
-        public static function initializeTestEnvaroment(): Origin{
-            return new OriginFrameworkTest();
-        }
-
     }
 
 ?>
