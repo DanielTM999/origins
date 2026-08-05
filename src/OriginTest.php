@@ -1,6 +1,8 @@
 <?php
     namespace Daniel\Origins;
 
+    use Daniel\Origins\Tester\OriginFrameworkTest;
+
     if(session_status() != PHP_SESSION_ACTIVE){
         session_start();
     }

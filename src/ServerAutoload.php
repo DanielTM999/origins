@@ -12,7 +12,7 @@ use RecursiveIteratorIterator;
 use ReflectionClass;
 use RuntimeException;
 
-final class ServerAutoload extends Autoloader
+class ServerAutoload extends Autoloader
 {
     public static string $metaDadosPath = "./origins.json";
     private array $loadedFiles = [];
@@ -65,6 +65,9 @@ final class ServerAutoload extends Autoloader
                 $path = $directory . DIRECTORY_SEPARATOR . $item;
 
                 if (is_dir($path)) {
+                    if ($this->isWithinTestFolder($path)) {
+                        continue;
+                    }
                     if (isset($this->modules[$item])) {
                         $this->modules[$item]['modulePath'] = $path;
                     }
@@ -189,7 +192,7 @@ final class ServerAutoload extends Autoloader
     }
 
 
-    private function loadWithDependencies(array $files): array
+    protected function loadWithDependencies(array $files): array
     {
         $pending = $files;
         $specialFiles = [];
@@ -260,6 +263,36 @@ final class ServerAutoload extends Autoloader
         } else {
             $this->loadElements();
         }
+    }
+
+    protected function getTestFolder(): ?string
+    {
+        $folder = $_ENV['test.folder'] ?? (($_ENV['base.dir'] ?? '') . DIRECTORY_SEPARATOR . 'test');
+        $folder = rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $folder), DIRECTORY_SEPARATOR);
+        return $folder !== '' ? $folder : null;
+    }
+
+    protected function isWithinTestFolder(string $path): bool
+    {
+        $testFolder = $this->getTestFolder();
+        if ($testFolder === null) {
+            return false;
+        }
+
+        $normalize = static function (string $p): string {
+            $real = realpath($p);
+            $p = $real !== false ? $real : $p;
+            return rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $p), DIRECTORY_SEPARATOR);
+        };
+
+        $normPath = $normalize($path);
+        $normTest = $normalize($testFolder);
+        if ($normTest === '') {
+            return false;
+        }
+
+        return $normPath === $normTest
+            || str_starts_with($normPath, $normTest . DIRECTORY_SEPARATOR);
     }
 
     private function getBaseDir(): string
