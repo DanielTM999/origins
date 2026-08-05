@@ -6,12 +6,6 @@ use Daniel\Origins\HttpMethod;
 use Daniel\Origins\ServerDispacher;
 use Override;
 
-/**
- * Dispatcher usado no boot de teste.
- *
- * Reaproveita todo o mapeamento do {@see ServerDispacher}, porém remove a rota raiz
- * (`/` no GET) para que a home da aplicação não seja iniciada/executada durante os testes.
- */
 class ServerDispacherTester extends ServerDispacher
 {
     #[Override]

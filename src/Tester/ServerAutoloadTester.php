@@ -7,13 +7,6 @@ use Override;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
-/**
- * Autoloader usado no boot de teste.
- *
- * Carrega a aplicação normalmente (o {@see ServerAutoload} já ignora a pasta de teste,
- * mantendo prod livre de testes) e, em seguida, carrega explicitamente os arquivos da
- * `test.folder` para que as classes de teste fiquem declaradas.
- */
 class ServerAutoloadTester extends ServerAutoload
 {
     #[Override]

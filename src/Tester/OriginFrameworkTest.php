@@ -21,7 +21,6 @@ if (session_status() != PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-
 class OriginFrameworkTest extends OriginTest
 {
     protected Dispacher $dispacher;
@@ -65,13 +64,6 @@ class OriginFrameworkTest extends OriginTest
         ob_end_flush();
     }
 
-    /**
-     * Executa os testes e gera o relatório.
-     *
-     * @param string[] $classes Filtro opcional de classes (FQCN). Vazio = todas da test.folder.
-     * @param string[] $methods Filtro opcional de nomes de métodos. Vazio = todos os @Test.
-     * @return TestResult[]
-     */
     public function runTests(array $classes = [], array $methods = [])
     {
         $testFolder = $this->resolveTestFolder();
@@ -87,10 +79,6 @@ class OriginFrameworkTest extends OriginTest
         return $results;
     }
 
-    /**
-     * @param string[] $filter
-     * @return string[]
-     */
     private function discoverTestClasses(string $testFolder, array $filter): array
     {
         $normTest = $this->normalizePath($testFolder);
@@ -135,10 +123,6 @@ class OriginFrameworkTest extends OriginTest
         return $found;
     }
 
-    /**
-     * @param string[] $methodsFilter
-     * @return TestResult[]
-     */
     private function runTestClass(string $className, array $methodsFilter): array
     {
         $reflect = new ReflectionClass($className);
@@ -149,7 +133,6 @@ class OriginFrameworkTest extends OriginTest
             return $results;
         }
 
-        // Classe inteira desabilitada -> todos os testes ficam "skipped".
         if (AnnotationsUtils::isAnnotationPresent($reflect, Disabled::class)) {
             $reason = $this->disabledReason($reflect);
             foreach ($testMethods as $method) {
@@ -165,7 +148,6 @@ class OriginFrameworkTest extends OriginTest
             return $results;
         }
 
-        // Bean de teste criado 1x pelo injetor de dependência.
         try {
             $instance = $this->Dmanager->tryCreate($className);
         } catch (Throwable $th) {
@@ -191,7 +173,6 @@ class OriginFrameworkTest extends OriginTest
         $beforeEach = $this->collectHookMethods($reflect, BeforeEach::class);
         $afterEach = $this->collectHookMethods($reflect, AfterEach::class);
 
-        // @BeforeAll (1x). Se falhar, todos os testes viram "error".
         try {
             $this->invokeHooks($this->collectHookMethods($reflect, BeforeAll::class), $instance);
         } catch (Throwable $th) {
@@ -213,20 +194,14 @@ class OriginFrameworkTest extends OriginTest
             $results[] = $this->runSingleTest($className, $instance, $method, $beforeEach, $afterEach);
         }
 
-        // @AfterAll (1x) - best effort.
         try {
             $this->invokeHooks($this->collectHookMethods($reflect, AfterAll::class), $instance);
         } catch (Throwable) {
-            // Falha de teardown global é ignorada.
         }
 
         return $results;
     }
 
-    /**
-     * @param ReflectionMethod[] $beforeEach
-     * @param ReflectionMethod[] $afterEach
-     */
     private function runSingleTest(
         string $className,
         object $instance,
@@ -266,7 +241,6 @@ class OriginFrameworkTest extends OriginTest
             try {
                 $this->invokeHooks($afterEach, $instance);
             } catch (Throwable) {
-                // Teardown por teste é best-effort.
             }
         }
         $durationMs = (hrtime(true) - $start) / 1_000_000;
@@ -274,10 +248,6 @@ class OriginFrameworkTest extends OriginTest
         return new TestResult($className, $method->getName(), $display, $status, $durationMs, $message, $trace);
     }
 
-    /**
-     * @param string[] $filter
-     * @return ReflectionMethod[]
-     */
     private function collectTestMethods(ReflectionClass $reflect, array $filter): array
     {
         $methods = [];
@@ -294,9 +264,6 @@ class OriginFrameworkTest extends OriginTest
         return $methods;
     }
 
-    /**
-     * @return ReflectionMethod[]
-     */
     private function collectHookMethods(ReflectionClass $reflect, string $annotation): array
     {
         $methods = [];
@@ -318,9 +285,6 @@ class OriginFrameworkTest extends OriginTest
         return false;
     }
 
-    /**
-     * @param ReflectionMethod[] $methods
-     */
     private function invokeHooks(array $methods, object $instance): void
     {
         foreach ($methods as $method) {
@@ -328,12 +292,6 @@ class OriginFrameworkTest extends OriginTest
         }
     }
 
-    /**
-     * Invoca um método pelo nome a partir da própria instância criada pela DI.
-     *
-     * Isso resolve o override gerado pelo proxy (quando há), delegando para o alvo real
-     * onde os campos @Inject foram preenchidos — mesmo comportamento do dispatcher.
-     */
     private function invokeOn(object $instance, string $methodName): void
     {
         $method = new ReflectionMethod($instance, $methodName);
@@ -381,9 +339,6 @@ class OriginFrameworkTest extends OriginTest
         return rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path), DIRECTORY_SEPARATOR);
     }
 
-    /**
-     * @param TestResult[] $results
-     */
     private function emitReport(array $results): void
     {
         $html = (new TestReportGenerator())->generate($results);

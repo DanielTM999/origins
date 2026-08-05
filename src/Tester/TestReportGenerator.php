@@ -2,14 +2,8 @@
 
 namespace Daniel\Origins\Tester;
 
-/**
- * Gera um relatório HTML autocontido a partir de uma lista de {@see TestResult}.
- */
 class TestReportGenerator
 {
-    /**
-     * @param TestResult[] $results
-     */
     public function generate(array $results): string
     {
         $total   = count($results);
@@ -76,9 +70,6 @@ class TestReportGenerator
 HTML;
     }
 
-    /**
-     * @param TestResult[] $results
-     */
     private function renderRows(array $results): string
     {
         if (empty($results)) {
@@ -126,9 +117,6 @@ HTML;
         return '<span class="badge badge-' . $status . '">' . $label . '</span>';
     }
 
-    /**
-     * @param TestResult[] $results
-     */
     private function countByStatus(array $results, string $status): int
     {
         $count = 0;

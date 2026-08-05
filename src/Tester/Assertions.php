@@ -5,11 +5,6 @@ namespace Daniel\Origins\Tester;
 use Countable;
 use Throwable;
 
-/**
- * Conjunto de asserções estáticas estilo JUnit.
- *
- * Cada método lança {@see AssertionFailedException} quando a verificação falha.
- */
 final class Assertions
 {
     public static function assertTrue(bool $condition, ?string $message = null): void
@@ -100,9 +95,6 @@ final class Assertions
         }
     }
 
-    /**
-     * Verifica que a execução de $callback lança uma exceção do tipo $expectedException.
-     */
     public static function assertThrows(string $expectedException, callable $callback, ?string $message = null): void
     {
         try {

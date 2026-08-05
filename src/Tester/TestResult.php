@@ -2,9 +2,6 @@
 
 namespace Daniel\Origins\Tester;
 
-/**
- * Resultado da execução de um único método de teste.
- */
 class TestResult
 {
     public const PASSED  = 'passed';
